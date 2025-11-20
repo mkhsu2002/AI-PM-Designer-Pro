@@ -1,103 +1,75 @@
-# AI Product Marketing Designer v1.0
+# AI Product Marketing Designer PRO v2.0
 
-AI Product Marketing Designer 是一個基於 Google Gemini API 的現代化網頁應用程式，旨在幫助行銷人員與產品經理快速生成專業級的視覺行銷素材。
+**AI Product Marketing Designer PRO** 是一個專為行銷人員與產品經理打造的智慧化視覺生產力工具。
 
-只需上傳一張產品照片，AI 就能扮演「視覺總監」的角色，為您分析產品特點，構思三種不同的行銷策略路線，並生成高品質的廣告海報概念圖。
+基於 Google 最新一代的 **Gemini 2.5 Flash** (推理與視覺) 與 **Gemini 3 Pro Image** (圖像生成) 模型，它能扮演您的「AI 創意總監」與「社群內容規劃師」，從單張產品圖出發，自動拆解品牌 DNA，並生成包含廣告主圖與社群 Stories 的完整銷售漏斗素材包。
 
-## 🌟 核心功能 (v1.0)
+## 🚀 PRO v2.0 核心功能
 
-1.  **AI 產品分析 (Product Analysis)**:
-    *   使用 Gemini 2.5 Flash 模型深度識別產品特徵。
-    *   自動提煉繁體中文的產品賣點與視覺描述。
+### 1. 深度感知輸入 (Context-Aware Input)
+*   **產品視覺分析**: 自動識別產品材質、光影與設計語言。
+*   **品牌背景識別**: 支援輸入品牌官網或品牌故事，AI 會自動過濾雜訊，提取核心品牌精神與 Tone & Manner。
+*   **競品/文案參考**: 可貼上參考文案或競品資訊，AI 將拆解其「說服邏輯」與「敘事結構」並應用於您的企劃中。
 
-2.  **多樣化行銷策略 (Strategy Generation)**:
-    *   自動生成 3 種截然不同的視覺行銷路線 (Routes)。
-    *   每條路線包含獨特的主標題 (Slogan)、副標題與風格簡述。
+### 2. Phase 1: 視覺策略制定 (Strategy Director)
+*   **三路並進**: AI 總監會根據產品屬性，構思三條截然不同的視覺行銷路線 (Routes)。
+*   **概念預覽**: 為每條路線生成 3 張高質感的廣告海報概念圖，協助您定調視覺風格。
+*   **中英雙語摘要**: 提供繁體中文的風格解說與畫面構成摘要。
 
-3.  **專業視覺生成 (Visual Generation)**:
-    *   整合 Google Gemini 3 Pro Image Generation 模型。
-    *   **[v1.0 新增] 中文畫面摘要**：在生成前預覽畫面的構成說明。
-    *   **[v1.0 新增] 提示詞編輯 (Prompt Editing)**：可自由修改 AI 生成的英文提示詞。
-    *   **[v1.0 新增] 參考圖片上傳 (Reference Image)**：可上傳參考圖 (如配色參考、Logo) 來引導生成結果。
+### 3. Phase 2: 全套內容企劃 (Content Suite Planning)
+一旦選定策略，AI 將自動規劃一套 **8 張圖的完整社群行銷素材包**：
+*   **A. 方形主視覺 (Square 1:1)**:
+    *   包含標準電商白底圖 (Main White) 與情境廣告圖 (Main Lifestyle)。
+*   **B. 社群長圖漏斗 (Stories 9:16)**:
+    *   自動規劃 6 張連貫的銷售故事：**封面 (Hook) → 痛點 (Problem) → 解法 (Solution) → 細節 (Features) → 信任 (Trust) → 行動 (CTA)**。
 
-4.  **報告匯出**:
-    *   一鍵下載完整的文字策略報告 (.txt) 與生成的高畫質圖片。
-
-## 🛠 技術棧
-
-*   **Frontend**: React 19, TypeScript, Tailwind CSS
-*   **AI Model**: Google GenAI SDK (@google/genai)
-    *   Gemini 2.5 Flash (Vision & Reasoning)
-    *   Gemini 3 Pro Image Preview (Image Generation)
+### 4. 專業工作流：審閱與製作 (Review & Production Workflow)
+v2.0 引入了專業的廣告製作流程：
+*   **腳本審閱模式 (Script Review)**: 在生成圖片前，您可以完全掌控並編輯每一張圖的文案 (Copy) 與 AI 繪圖提示詞 (Prompt)。
+*   **精細化控圖 (Reference Control)**: 支援為企劃中的**每一張圖**單獨上傳參考圖片 (例如：最後一張 CTA 圖需要放上特定的 Logo，或第一張圖需要參考特定配色)。
+*   **一鍵量產**: 確認無誤後，切換至製作模式即可快速生成高品質素材。
 
 ---
 
-## 🚀 部署指南 (Deployment Guide)
+## 🛠 技術棧 (Tech Stack)
 
-本專案設計為純前端應用 (SPA)，非常適合部署在 GitHub Pages, Vercel 或 **Cloudflare Pages**。以下提供使用 GitHub + Cloudflare Pages 的免費部署教學。
+*   **Frontend**: React 19, TypeScript, Tailwind CSS
+*   **AI Models**:
+    *   **Gemini 2.5 Flash**: 負責多模態視覺分析、品牌語意理解、行銷策略規劃 (Thinking Budget Enabled)。
+    *   **Gemini 3 Pro Image Preview**: 負責執行高解析度的廣告圖像生成 (支援 1:1 與 9:16 構圖)。
+*   **State Management**: React Hooks
+*   **Build Tool**: Create React App / Vite
 
-### 步驟 1: 準備工作
+---
 
-1.  擁有一個 [GitHub](https://github.com/) 帳號。
-2.  擁有一個 [Cloudflare](https://www.cloudflare.com/) 帳號。
-3.  在本地端安裝 Node.js 與 Git (如果您是在雲端 IDE 開發，這些通常已預裝)。
+## 🚀 部署指南 (Deployment)
 
-### 步驟 2: 上傳程式碼至 GitHub
+本專案為純前端架構 (SPA)，無需後端伺服器，推薦部署於 **Cloudflare Pages**, **Vercel** 或 **GitHub Pages**。
 
-1.  登入 GitHub，點擊右上角 "+" -> "New repository"。
-2.  輸入 Repository name (例如 `ai-pm-designer`)，選擇 "Public" 或 "Private"，然後點擊 "Create repository"。
-3.  回到您的專案終端機 (Terminal)，執行以下指令：
+### 快速部署 (Cloudflare Pages)
 
-```bash
-# 1. 初始化 Git (如果尚未初始化)
-git init
+1.  Fork 或上傳本專案至您的 GitHub。
+2.  登入 Cloudflare Dashboard > **Workers & Pages** > **Create Application** > **Connect to Git**。
+3.  選擇本專案 Repository。
+4.  **Build Settings**:
+    *   Framework preset: `Create React App`
+    *   Build command: `npm run build`
+    *   Output directory: `build`
+5.  點擊 **Deploy** 即可完成。
 
-# 2. 加入所有檔案
-git add .
-
-# 3. 提交變更
-git commit -m "Initial commit v1.0"
-
-# 4. 設定主要分支名稱 (通常為 main)
-git branch -M main
-
-# 5. 連結遠端倉庫 (將 URL 替換為您剛剛建立的 GitHub 網址)
-git remote add origin https://github.com/YOUR_USERNAME/ai-pm-designer.git
-
-# 6. 推送程式碼
-git push -u origin main
-```
-
-### 步驟 3: 使用 Cloudflare Pages 部署
-
-1.  登入 Cloudflare Dashboard，在左側選單選擇 **Workers & Pages**。
-2.  點擊 **Create Application** -> 切換到 **Pages** 標籤 -> 點擊 **Connect to Git**。
-3.  授權 Cloudflare 存取您的 GitHub 帳號，並選擇剛剛建立的 `ai-pm-designer` 倉庫。
-4.  **設定 Build settings (關鍵步驟)**:
-    *   **Framework preset**: 選擇 `Create React App` (或根據您的建置工具選擇 Vite 等，如果是本專案結構，通常無需特別設定 Build command，因為它是純靜態或即時編譯，若使用標準 React build 流程：)
-    *   **Build command**: `npm run build` (若您有設定 package.json build script)
-    *   **Build output directory**: `build` 或 `dist`
-    *   *注意：如果是使用類似 StackBlitz/IDX 的即時環境且沒有 package.json build script，您可能需要先在本地建立 `package.json` 並設定 build 流程。*
-
-    **(簡易版 - 如果您沒有複雜的 Build 流程)**:
-    *   您可以直接將 `index.html`, `index.tsx` 以及所有 `src/` 下的檔案結構上傳。但最推薦的方式還是透過標準的 React Build 流程 (Vite/Webpack) 產出靜態檔後再部署。
-
-5.  點擊 **Save and Deploy**。
-
-### 💡 關於 API Key 的安全性
-
-本專案是純前端應用，API Key 目前設計為由使用者在使用時於瀏覽器端輸入 (透過 `window.aistudio.openSelectKey` 或環境變數)。
-*   **部署後**：使用者造訪網頁時，會彈出 Google AI Studio 的授權視窗，要求使用者使用自己的 API Key，這是最安全的做法，您不需要將您的 Key 寫死在程式碼中。
+### 🔑 API Key 設定
+本應用程式採用 **BYOK (Bring Your Own Key)** 模式。
+使用者在瀏覽器端開啟應用時，會透過 Google AI Studio 的 `window.aistudio.openSelectKey()` 安全地請求授權，金鑰不會儲存在伺服器端，確保安全性。
 
 ---
 
 ## © License
 
-本專案採用 **MIT License** 授權。
+**MIT License**
 
-MIT License
+Open sourced by [FlyPig AI](https://flypigai.icareu.tw/)
 
-Copyright (c) 2025 AI Product Marketing Designer
+Copyright (c) 2025 AI Product Marketing Designer PRO
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
