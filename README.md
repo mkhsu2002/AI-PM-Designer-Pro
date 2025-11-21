@@ -31,6 +31,21 @@ v2.0 引入了專業的廣告製作流程：
 
 ---
 
+## 🌐 立即體驗 (Try it Now)
+
+點擊下方連結即可直接在 Google AI Studio 環境中執行此 App：
+
+👉 [**開啟 AI Product Marketing Designer PRO**](https://ai.studio/apps/drive/1oEWzVCETaFvXoV3QJsHfCHWVn_cuaneS)
+
+### ⚠️ 重要設定說明 (Setup Guide)
+當您開啟連結後，系統會自動將專案複製到您的工作區。為了正常使用所有生成功能，請注意以下事項：
+
+1. **API Key 設定**：啟動 App 時，系統會要求您選擇 API Key。
+2. **付費帳戶需求**：由於本專案使用了 Google 最新且高階的 **Gemini 3 Pro Image** 等模型，您所選用的 API Key 必須來自一個 **已綁定計費帳戶 (Google Cloud Billing Enabled)** 的專案。
+    *   若使用免費層級 (Free Tier) 的 Key，可能會遇到無法調用特定模型或額度受限的問題。
+
+---
+
 ## 🛠 技術棧 (Tech Stack)
 
 *   **Frontend**: React 19, TypeScript, Tailwind CSS

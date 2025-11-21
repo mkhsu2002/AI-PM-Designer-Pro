@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { analyzeProductImage, generateContentPlan, generateFullReport } from './services/geminiService';
 import { DirectorOutput, AppState, ContentPlan, ContentItem } from './types';
 import { Spinner } from './components/Spinner';
@@ -30,6 +30,26 @@ const App: React.FC = () => {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // --- API Key Handling ---
+  
+  // Check API Key on Mount
+  useEffect(() => {
+    const checkInitialKey = async () => {
+      const aiStudio = (window as any).aistudio;
+      if (aiStudio) {
+        try {
+          const hasKey = await aiStudio.hasSelectedApiKey();
+          if (!hasKey) {
+            // Automatically prompt new users to select their key
+            await aiStudio.openSelectKey();
+          }
+        } catch (err) {
+          console.error("Error checking API key status:", err);
+        }
+      }
+    };
+    checkInitialKey();
+  }, []);
+
   // Used before critical actions to ensure a key exists
   const ensureApiKey = async () => {
     const aiStudio = (window as any).aistudio;
