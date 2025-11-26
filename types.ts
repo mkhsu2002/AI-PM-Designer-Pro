@@ -48,5 +48,73 @@ export enum AppState {
   RESULTS, // Phase 1 Done (Routes visible)
   PLANNING, // Phase 2 Analyzing (Generating Script)
   SUITE_READY, // Phase 2 Script Ready (Review Mode)
+  ANALYZING_MARKET, // Phase 3 Analyzing (Market Analysis)
+  MARKET_READY, // Phase 3 Done (Market Analysis Ready)
+  ANALYZING_CONTENT, // Phase 4 Analyzing (Content Strategy)
+  CONTENT_READY, // Phase 4 Done (Content Strategy Ready)
   ERROR
+}
+
+// --- Phase 3: Market Analysis Types ---
+
+export interface ProductCoreValue {
+  mainFeatures: string[];
+  coreAdvantages: string[];
+  painPointsSolved: string[];
+}
+
+export interface MarketPositioning {
+  culturalInsights: string;
+  consumerHabits: string;
+  languageNuances: string;
+  searchTrends: string[];
+}
+
+export interface Competitor {
+  brandName: string;
+  marketingStrategy: string;
+  advantages: string[];
+  weaknesses: string[];
+}
+
+export interface BuyerPersona {
+  name: string;
+  demographics: string;
+  interests: string[];
+  painPoints: string[];
+  searchKeywords: string[];
+}
+
+export interface MarketAnalysis {
+  productCoreValue: ProductCoreValue;
+  marketPositioning: MarketPositioning;
+  competitors: Competitor[];
+  buyerPersonas: BuyerPersona[];
+}
+
+// --- Phase 4: Content Strategy Types ---
+
+export interface ContentTopic {
+  title: string;
+  description: string;
+  focusKeyword: string;
+  longTailKeywords: string[];
+  seoGuidance: {
+    keywordDensity: string;
+    semanticKeywords: string[];
+    internalLinks: string[];
+    externalLinks: string[];
+  };
+}
+
+export interface InteractiveElement {
+  type: string;
+  description: string;
+}
+
+export interface ContentStrategy {
+  contentTopics: ContentTopic[];
+  interactiveElements: InteractiveElement[];
+  ctaSuggestions: string[];
+  aiStudioPrompts: string[]; // 每個內容主題對應一個 AI Studio 提示詞
 }

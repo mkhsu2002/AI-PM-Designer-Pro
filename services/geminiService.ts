@@ -1,8 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
-import { DIRECTOR_SYSTEM_PROMPT, CONTENT_PLANNER_SYSTEM_PROMPT } from "../prompts";
-import { DirectorOutput, ContentPlan, MarketingRoute, ProductAnalysis, ContentItem } from "../types";
+import { DIRECTOR_SYSTEM_PROMPT, CONTENT_PLANNER_SYSTEM_PROMPT, MARKET_ANALYST_SYSTEM_PROMPT, CONTENT_STRATEGIST_SYSTEM_PROMPT } from "../prompts";
+import { DirectorOutput, ContentPlan, MarketingRoute, ProductAnalysis, ContentItem, MarketAnalysis, ContentStrategy } from "../types";
 import { handleGeminiError, AppError, ErrorType } from "../utils/errorHandler";
-import { validateDirectorOutput, validateContentPlan } from "../utils/validators";
+import { validateDirectorOutput, validateContentPlan, validateMarketAnalysis, validateContentStrategy } from "../utils/validators";
 import { extractImageColors, colorToPromptFragment } from "../utils/imageColorExtractor";
 import { isChineseMode, extractEnglishElements } from "../utils/languageMode";
 
@@ -467,4 +467,170 @@ export const generateFullReport = (
   });
 
   return report;
+};
+
+// --- Phase 3: Market Analysis ---
+
+export const generateMarketAnalysis = async (
+  productName: string,
+  selectedRoute: MarketingRoute,
+  productImageBase64: string
+): Promise<MarketAnalysis> => {
+  try {
+    const apiKey = getApiKey();
+    const ai = new GoogleGenAI({ apiKey });
+
+    const promptText = `
+      產品名稱: ${productName}
+      
+      選定的行銷策略路線:
+      - 路線名稱: ${selectedRoute.route_name}
+      - 主標題: ${selectedRoute.headline_zh}
+      - 副標題: ${selectedRoute.subhead_zh}
+      - 視覺風格: ${selectedRoute.style_brief_zh}
+      - 目標客群: ${selectedRoute.target_audience_zh || '未指定'}
+      - 視覺元素: ${selectedRoute.visual_elements_zh || '未指定'}
+      
+      請根據以上資訊生成完整的市場分析報告 (JSON)。
+    `;
+
+    const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: promptText }];
+    
+    // 添加產品圖片
+    const match = productImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (match) {
+      parts.push({
+        inlineData: {
+          data: match[2],
+          mimeType: match[1]
+        }
+      });
+    }
+
+    const response = await retryWithBackoff(async () => {
+      return await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: { parts: parts },
+        config: {
+          systemInstruction: MARKET_ANALYST_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 1024 }
+        }
+      });
+    }, 3, 2000);
+
+    if (!response.text) {
+      throw new AppError({
+        type: ErrorType.API,
+        message: "Gemini Market Analysis failed",
+        userMessage: "市場分析生成失敗，請稍候再試。",
+      });
+    }
+
+    try {
+      const cleaned = cleanJson(response.text);
+      const parsed = JSON.parse(cleaned);
+      
+      console.log('市場分析 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
+      
+      return validateMarketAnalysis(parsed);
+    } catch (e) {
+      console.error("Failed to parse or validate MarketAnalysis JSON", response.text);
+      console.error("Error details:", e);
+      
+      if (e instanceof AppError) {
+        throw e;
+      }
+      
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      throw new AppError({
+        type: ErrorType.VALIDATION,
+        message: `市場分析格式錯誤: ${errorMessage}`,
+        userMessage: "市場分析格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
+        originalError: e,
+      });
+    }
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    handleGeminiError(error);
+  }
+};
+
+// --- Phase 4: Content Strategy ---
+
+export const generateContentStrategy = async (
+  marketAnalysis: MarketAnalysis,
+  productName: string,
+  selectedRoute: MarketingRoute
+): Promise<ContentStrategy> => {
+  try {
+    const apiKey = getApiKey();
+    const ai = new GoogleGenAI({ apiKey });
+
+    const promptText = `
+      產品名稱: ${productName}
+      
+      選定的行銷策略路線:
+      - 路線名稱: ${selectedRoute.route_name}
+      - 主標題: ${selectedRoute.headline_zh}
+      - 副標題: ${selectedRoute.subhead_zh}
+      - 視覺風格: ${selectedRoute.style_brief_zh}
+      
+      市場分析結果:
+      ${JSON.stringify(marketAnalysis, null, 2)}
+      
+      請根據以上市場分析結果生成專業的內容策略與 SEO 優化方案 (JSON)。
+    `;
+
+    const response = await retryWithBackoff(async () => {
+      return await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: { parts: [{ text: promptText }] },
+        config: {
+          systemInstruction: CONTENT_STRATEGIST_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 1024 }
+        }
+      });
+    }, 3, 2000);
+
+    if (!response.text) {
+      throw new AppError({
+        type: ErrorType.API,
+        message: "Gemini Content Strategy failed",
+        userMessage: "內容策略生成失敗，請稍候再試。",
+      });
+    }
+
+    try {
+      const cleaned = cleanJson(response.text);
+      const parsed = JSON.parse(cleaned);
+      
+      console.log('內容策略 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
+      
+      return validateContentStrategy(parsed);
+    } catch (e) {
+      console.error("Failed to parse or validate ContentStrategy JSON", response.text);
+      console.error("Error details:", e);
+      
+      if (e instanceof AppError) {
+        throw e;
+      }
+      
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      throw new AppError({
+        type: ErrorType.VALIDATION,
+        message: `內容策略格式錯誤: ${errorMessage}`,
+        userMessage: "內容策略格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
+        originalError: e,
+      });
+    }
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    handleGeminiError(error);
+  }
 };

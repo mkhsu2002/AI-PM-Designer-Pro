@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { analyzeProductImage, generateContentPlan, generateFullReport } from './services/geminiService';
-import { DirectorOutput, AppState, ContentPlan, ContentItem } from './types';
+import { analyzeProductImage, generateContentPlan, generateFullReport, generateMarketAnalysis, generateContentStrategy } from './services/geminiService';
+import { DirectorOutput, AppState, ContentPlan, ContentItem, MarketAnalysis, ContentStrategy } from './types';
 import { Spinner } from './components/Spinner';
 import { ProductCard } from './components/ProductCard';
 import { PromptCard } from './components/PromptCard';
 import { GuideModal } from './components/GuideModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { ContentSuite } from './components/ContentSuite';
+import { MarketAnalysis as MarketAnalysisComponent } from './components/MarketAnalysis';
+import { ContentStrategy as ContentStrategyComponent } from './components/ContentStrategy';
 import { AppError, ErrorType } from './utils/errorHandler';
 import { validateProductName, validateBrandContext, validateRefCopy } from './utils/validators';
 import { LanguageMode, getLanguageMode, setLanguageMode, isChineseMode } from './utils/languageMode';
@@ -28,6 +30,12 @@ const App: React.FC = () => {
   // Phase 2 Data
   const [contentPlan, setContentPlan] = useState<ContentPlan | null>(null);
   const [editedPlanItems, setEditedPlanItems] = useState<ContentItem[]>([]);
+  
+  // Phase 3 Data
+  const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null);
+  
+  // Phase 4 Data
+  const [contentStrategy, setContentStrategy] = useState<ContentStrategy | null>(null);
 
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [errorType, setErrorType] = useState<ErrorType | null>(null);
@@ -193,6 +201,66 @@ const App: React.FC = () => {
     }
     setLanguageMode(mode);
     setLanguageModeState(mode);
+  };
+
+  const handleGenerateMarketAnalysis = async () => {
+    if (!analysisResult || !imagePreview) return;
+    
+    setErrorMsg("");
+    setErrorType(null);
+    setAppState(AppState.ANALYZING_MARKET);
+    
+    try {
+      const selectedRoute = analysisResult.marketing_routes[activeRouteIndex];
+      const analysis = await generateMarketAnalysis(
+        productName,
+        selectedRoute,
+        imagePreview
+      );
+      setMarketAnalysis(analysis);
+      setAppState(AppState.MARKET_READY);
+    } catch (e: unknown) {
+      console.error(e);
+      
+      if (e instanceof AppError) {
+        setErrorMsg(e.userMessage);
+        setErrorType(e.type);
+      } else {
+        setErrorMsg("市場分析失敗，請稍候再試。");
+        setErrorType(ErrorType.UNKNOWN);
+      }
+      setAppState(AppState.SUITE_READY);
+    }
+  };
+
+  const handleGenerateContentStrategy = async () => {
+    if (!marketAnalysis) return;
+    
+    setErrorMsg("");
+    setErrorType(null);
+    setAppState(AppState.ANALYZING_CONTENT);
+    
+    try {
+      const selectedRoute = analysisResult!.marketing_routes[activeRouteIndex];
+      const strategy = await generateContentStrategy(
+        marketAnalysis,
+        productName,
+        selectedRoute
+      );
+      setContentStrategy(strategy);
+      setAppState(AppState.CONTENT_READY);
+    } catch (e: unknown) {
+      console.error(e);
+      
+      if (e instanceof AppError) {
+        setErrorMsg(e.userMessage);
+        setErrorType(e.type);
+      } else {
+        setErrorMsg("內容策略生成失敗，請稍候再試。");
+        setErrorType(ErrorType.UNKNOWN);
+      }
+      setAppState(AppState.MARKET_READY);
+    }
   };
 
   const handleDownloadReport = () => {
@@ -410,6 +478,68 @@ const App: React.FC = () => {
                 />
             </div>
         )}
+
+        {/* Phase 3 Trigger */}
+        {(appState === AppState.SUITE_READY || appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && contentPlan && (
+          <div className="mt-12 border-t border-white/10 pt-12">
+            <div className="bg-[#1e1e24] rounded-2xl p-8 border border-blue-500/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">3</div>
+                  <h3 className="text-xl font-bold text-white">Phase 3: 產品市場分析</h3>
+                </div>
+                <p className="text-gray-400 mb-6">根據第一及第二階段產生的產品相關資訊，生成完整的市場分析報告</p>
+                
+                {!marketAnalysis ? (
+                  <button
+                    onClick={handleGenerateMarketAnalysis}
+                    disabled={appState === AppState.ANALYZING_MARKET}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+                  >
+                    {appState === AppState.ANALYZING_MARKET ? '分析中...' : '開始市場分析'}
+                  </button>
+                ) : (
+                  <div className="mt-6">
+                    <MarketAnalysisComponent analysis={marketAnalysis} productName={productName} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Phase 4 Trigger */}
+        {(appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && marketAnalysis && (
+          <div className="mt-12 border-t border-white/10 pt-12">
+            <div className="bg-[#1e1e24] rounded-2xl p-8 border border-green-500/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-32 bg-green-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold">4</div>
+                  <h3 className="text-xl font-bold text-white">Phase 4: 內容與 SEO 策略</h3>
+                </div>
+                <p className="text-gray-400 mb-6">基於第三階段的分析結果，生成專業的內容策略與 SEO 優化方案</p>
+                
+                {!contentStrategy ? (
+                  <button
+                    onClick={handleGenerateContentStrategy}
+                    disabled={appState === AppState.ANALYZING_CONTENT}
+                    className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+                  >
+                    {appState === AppState.ANALYZING_CONTENT ? '生成中...' : '開始生成內容策略'}
+                  </button>
+                ) : (
+                  <div className="mt-6">
+                    <ContentStrategyComponent strategy={contentStrategy} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -513,6 +643,36 @@ const App: React.FC = () => {
             </div>
         )}
 
+        {(appState === AppState.ANALYZING_MARKET) && (
+             <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
+                <div className="relative">
+                    <Spinner className="w-20 h-20 text-blue-600" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                         <div className="w-10 h-10 bg-white rounded-full opacity-10 animate-ping"></div>
+                    </div>
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Phase 3: 市場分析中</h2>
+                    <p className="text-gray-400">正在分析產品核心價值、市場定位、競爭對手與潛在客戶...</p>
+                </div>
+            </div>
+        )}
+
+        {(appState === AppState.ANALYZING_CONTENT) && (
+             <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
+                <div className="relative">
+                    <Spinner className="w-20 h-20 text-green-600" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                         <div className="w-10 h-10 bg-white rounded-full opacity-10 animate-ping"></div>
+                    </div>
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Phase 4: 內容策略生成中</h2>
+                    <p className="text-gray-400">正在生成內容主題、SEO 策略與 AI Studio 提示詞...</p>
+                </div>
+            </div>
+        )}
+
         {/* Main Views */}
         {appState === AppState.IDLE && (
             <div className="flex-1 flex flex-col items-center mt-8 text-center">
@@ -530,7 +690,9 @@ const App: React.FC = () => {
             </div>
         )}
 
-        {(appState === AppState.RESULTS || appState === AppState.PLANNING || appState === AppState.SUITE_READY) && renderPhase1Results()}
+        {(appState === AppState.RESULTS || appState === AppState.PLANNING || appState === AppState.SUITE_READY || 
+          appState === AppState.ANALYZING_MARKET || appState === AppState.MARKET_READY || 
+          appState === AppState.ANALYZING_CONTENT || appState === AppState.CONTENT_READY) && renderPhase1Results()}
 
       </main>
 

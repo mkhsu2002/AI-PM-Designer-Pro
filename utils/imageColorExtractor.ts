@@ -177,3 +177,4 @@ export const colorToPromptFragment = (colors: {
   return `Use the following color palette extracted from the reference product image: ${colorList}. Ensure the generated image prominently features these colors, especially for the product itself. The color scheme should be: ${colors.description}`;
 };
 
+

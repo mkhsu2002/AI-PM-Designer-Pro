@@ -2,7 +2,8 @@
  * 使用 Zod 進行執行時型別驗證
  */
 import { z } from 'zod';
-import { ProductAnalysis, MarketingRoute, DirectorOutput, ContentItem, ContentPlan } from '../types';
+import { ProductAnalysis, MarketingRoute, DirectorOutput, ContentItem, ContentPlan, MarketAnalysis, ContentStrategy } from '../types';
+import { AppError, ErrorType } from './errorHandler';
 
 // ProductAnalysis Schema - 使用更寬鬆的驗證
 export const ProductAnalysisSchema = z.object({
@@ -234,5 +235,160 @@ export const validateRefCopy = (copy: string): { valid: boolean; error?: string 
     return { valid: false, error: '參考文案不能超過 10000 個字元' };
   }
   return { valid: true };
+};
+
+// --- Phase 3: Market Analysis Schemas ---
+
+const ProductCoreValueSchema = z.object({
+  mainFeatures: z.array(z.string().min(5)).min(3).max(10),
+  coreAdvantages: z.array(z.string().min(5)).min(3).max(10),
+  painPointsSolved: z.array(z.string().min(5)).min(3).max(10),
+});
+
+const MarketPositioningSchema = z.object({
+  culturalInsights: z.string().min(50).max(500),
+  consumerHabits: z.string().min(50).max(500),
+  languageNuances: z.string().min(20).max(300),
+  searchTrends: z.array(z.string().min(1)).min(3).max(15),
+});
+
+const CompetitorSchema = z.object({
+  brandName: z.string().min(1).max(100),
+  marketingStrategy: z.string().min(20).max(300),
+  advantages: z.array(z.string().min(5)).min(2).max(10),
+  weaknesses: z.array(z.string().min(5)).min(2).max(10),
+});
+
+const BuyerPersonaSchema = z.object({
+  name: z.string().min(1).max(50),
+  demographics: z.string().min(20).max(300),
+  interests: z.array(z.string().min(1)).min(3).max(15),
+  painPoints: z.array(z.string().min(5)).min(2).max(10),
+  searchKeywords: z.array(z.string().min(1)).min(3).max(15),
+});
+
+const MarketAnalysisSchema = z.object({
+  productCoreValue: ProductCoreValueSchema,
+  marketPositioning: MarketPositioningSchema,
+  competitors: z.array(CompetitorSchema).min(2).max(5),
+  buyerPersonas: z.array(BuyerPersonaSchema).min(2).max(5),
+});
+
+// --- Phase 4: Content Strategy Schemas ---
+
+const SEOGuidanceSchema = z.object({
+  keywordDensity: z.string().min(1).max(20),
+  semanticKeywords: z.array(z.string().min(1)).min(3).max(15),
+  internalLinks: z.array(z.string().min(1)).min(2).max(10),
+  externalLinks: z.array(z.string().min(1)).min(2).max(10),
+});
+
+const ContentTopicSchema = z.object({
+  title: z.string().min(5).max(100),
+  description: z.string().min(50).max(500),
+  focusKeyword: z.string().min(1).max(50),
+  longTailKeywords: z.array(z.string().min(1)).min(3).max(15),
+  seoGuidance: SEOGuidanceSchema,
+});
+
+const InteractiveElementSchema = z.object({
+  type: z.string().min(1).max(100),
+  description: z.string().min(20).max(300),
+});
+
+const ContentStrategySchema = z.object({
+  contentTopics: z.array(ContentTopicSchema).min(2).max(5),
+  interactiveElements: z.array(InteractiveElementSchema).min(1).max(5),
+  ctaSuggestions: z.array(z.string().min(3).max(50)).min(2).max(5),
+  aiStudioPrompts: z.array(z.string().min(100).max(2000)).min(2).max(5),
+});
+
+/**
+ * 驗證並解析 MarketAnalysis
+ */
+export const validateMarketAnalysis = (data: unknown): MarketAnalysis => {
+  const result = MarketAnalysisSchema.safeParse(data);
+  
+  if (result.success) {
+    return result.data;
+  }
+  
+  // 嘗試修復常見問題
+  if (typeof data === 'object' && data !== null) {
+    const fixed = { ...data } as Record<string, unknown>;
+    
+    // 確保陣列存在
+    if (!Array.isArray(fixed.competitors)) fixed.competitors = [];
+    if (!Array.isArray(fixed.buyerPersonas)) fixed.buyerPersonas = [];
+    
+    // 確保 productCoreValue 存在
+    if (!fixed.productCoreValue || typeof fixed.productCoreValue !== 'object') {
+      fixed.productCoreValue = {
+        mainFeatures: [],
+        coreAdvantages: [],
+        painPointsSolved: [],
+      };
+    }
+    
+    // 確保 marketPositioning 存在
+    if (!fixed.marketPositioning || typeof fixed.marketPositioning !== 'object') {
+      fixed.marketPositioning = {
+        culturalInsights: '',
+        consumerHabits: '',
+        languageNuances: '',
+        searchTrends: [],
+      };
+    }
+    
+    const retryResult = MarketAnalysisSchema.safeParse(fixed);
+    if (retryResult.success) {
+      console.warn('市場分析驗證失敗後成功修復資料格式');
+      return retryResult.data;
+    }
+  }
+  
+  const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('\n');
+  throw new AppError({
+    type: ErrorType.VALIDATION,
+    message: `市場分析格式驗證失敗：\n${errors}`,
+    userMessage: "市場分析格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
+    originalError: result.error,
+  });
+};
+
+/**
+ * 驗證並解析 ContentStrategy
+ */
+export const validateContentStrategy = (data: unknown): ContentStrategy => {
+  const result = ContentStrategySchema.safeParse(data);
+  
+  if (result.success) {
+    return result.data;
+  }
+  
+  // 嘗試修復常見問題
+  if (typeof data === 'object' && data !== null) {
+    const fixed = { ...data } as Record<string, unknown>;
+    
+    // 確保陣列存在
+    if (!Array.isArray(fixed.contentTopics)) fixed.contentTopics = [];
+    if (!Array.isArray(fixed.interactiveElements)) fixed.interactiveElements = [];
+    if (!Array.isArray(fixed.ctaSuggestions)) fixed.ctaSuggestions = [];
+    if (!Array.isArray(fixed.aiStudioPrompts)) fixed.aiStudioPrompts = [];
+    
+    const retryResult = ContentStrategySchema.safeParse(fixed);
+    if (retryResult.success) {
+      console.warn('內容策略驗證失敗後成功修復資料格式');
+      return retryResult.data;
+    }
+  }
+  
+  const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('\n');
+  throw new AppError({
+    type: ErrorType.VALIDATION,
+    message: `內容策略格式驗證失敗：\n${errors}`,
+    userMessage: "內容策略格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
+    originalError: result.error,
+  });
 };
 
