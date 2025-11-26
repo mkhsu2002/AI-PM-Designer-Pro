@@ -29,7 +29,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
         <div className="p-8">
           <div className="flex items-center gap-3 mb-2">
              <span className="px-2 py-0.5 bg-purple-600 rounded text-xs font-bold text-white">PRO</span>
-             <h2 className="text-3xl font-bold serif text-white">功能導覽 v2.9</h2>
+             <h2 className="text-3xl font-bold serif text-white">功能導覽 v3.0</h2>
           </div>
           <p className="text-gray-400 text-sm mb-8">從單圖分析到全套社群行銷素材的完整生產線。</p>
 
@@ -89,7 +89,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="px-6 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors"
             >
-              開始體驗 v2.9
+              開始體驗 v3.0
             </button>
           </div>
         </div>

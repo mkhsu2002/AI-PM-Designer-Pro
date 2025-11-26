@@ -419,7 +419,7 @@ export const generateFullReport = (
   const route = routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString();
 
-  let report = `AI PM Designer PRO v2.9 - Product Marketing Strategy Report\n`;
+  let report = `AI PM Designer PRO v3.0 - Product Marketing Strategy Report\n`;
   report += `Date: ${date}\n`;
   report += `=================================================\n\n`;
 
