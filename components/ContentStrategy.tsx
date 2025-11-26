@@ -12,9 +12,14 @@ export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy, prod
   const [copiedPrompt, setCopiedPrompt] = useState<{ index: number; type: 'aiStudio' | 'gamma' } | null>(null);
 
   const copyToClipboard = (text: string, index: number, type: 'aiStudio' | 'gamma') => {
+    // 複製提示詞到剪貼板
     navigator.clipboard.writeText(text);
     setCopiedPrompt({ index, type });
     setTimeout(() => setCopiedPrompt(null), 2000);
+    
+    // 同時開啟 AI Studio 和 Gamma.app
+    window.open('https://aistudio.google.com/', '_blank');
+    window.open('https://gamma.app/', '_blank');
   };
 
   return (
