@@ -5,6 +5,8 @@ import { useImageGeneration } from '../hooks/useImageGeneration';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { Spinner } from './Spinner';
 import { ImageModal } from './ImageModal';
+import { downloadAllImages, downloadSingleImage } from '../utils/imageDownloader';
+import { generateImageFileName } from '../utils/imageNaming';
 
 interface ContentSuiteProps {
   plan: ContentPlan;
@@ -64,7 +66,11 @@ const ScriptEditorRow: React.FC<{
 };
 
 // --- SUB-COMPONENT: Production Card ---
-const ProductionCard: React.FC<{ item: ContentItem }> = ({ item }) => {
+const ProductionCard: React.FC<{ 
+  item: ContentItem;
+  index: number; // 在 items 陣列中的索引
+  onImageChange?: (itemId: string, imageData: string | null) => void;
+}> = ({ item, index, onImageChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [storyAspectRatio, setStoryAspectRatio] = useState<'9:16' | '16:9'>('9:16');
@@ -73,8 +79,15 @@ const ProductionCard: React.FC<{ item: ContentItem }> = ({ item }) => {
   const actualRatio = item.type === 'story_slide' ? storyAspectRatio : item.ratio;
   
   // 使用自訂 Hooks
-  const { image, loading, error, generateImage } = useImageGeneration();
+  const { image, loading, error, generateImage, clearImage } = useImageGeneration();
   const { image: refImage, error: refImageError, uploadImage: uploadRefImage, clearImage: clearRefImage } = useImageUpload();
+
+  // 當圖片改變時，通知父組件
+  useEffect(() => {
+    if (onImageChange) {
+      onImageChange(item.id, image);
+    }
+  }, [image, item.id, onImageChange]);
 
   const handleGenerate = async () => {
     await generateImage(item.visual_prompt_en, actualRatio, refImage || undefined);
@@ -117,9 +130,19 @@ const ProductionCard: React.FC<{ item: ContentItem }> = ({ item }) => {
                          >
                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                          </button>
-                         <a href={image} download={`${item.id}.png`} className="p-2 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-sm" title="下載" onClick={(e) => e.stopPropagation()}>
+                         <button
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               if (image) {
+                                 const fileName = generateImageFileName(item, index);
+                                 downloadSingleImage(image, fileName);
+                               }
+                             }}
+                             className="p-2 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-sm" 
+                             title="下載單張"
+                         >
                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                         </a>
+                         </button>
                          <button onClick={handleGenerate} className="p-2 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-sm" title="重繪">
                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                          </button>
@@ -178,7 +201,8 @@ const ProductionCard: React.FC<{ item: ContentItem }> = ({ item }) => {
                             onClick={() => {
                                 if (storyAspectRatio !== '9:16') {
                                     setStoryAspectRatio('9:16');
-                                    setImage(null); // 清除已生成的圖片，因為比例改變了
+                                    // 清除已生成的圖片，因為比例改變了
+                                    clearImage();
                                 }
                             }}
                             className={`flex-1 py-1 px-2 rounded text-[10px] font-bold transition-colors ${
@@ -227,12 +251,53 @@ const ProductionCard: React.FC<{ item: ContentItem }> = ({ item }) => {
 export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, onDownloadReport }) => {
   const [mode, setMode] = useState<'review' | 'production'>('review');
   const [items, setItems] = useState<ContentItem[]>(plan.items);
+  // 追蹤所有已生成的圖片：Map<itemId, base64ImageData>
+  const [generatedImages, setGeneratedImages] = useState<Map<string, string>>(new Map());
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Sync with props if plan changes completely
   useEffect(() => {
     setItems(plan.items);
     setMode('review');
+    setGeneratedImages(new Map()); // 重置圖片追蹤
   }, [plan]);
+
+  // 處理單個圖片的狀態變化
+  const handleImageChange = (itemId: string, imageData: string | null) => {
+    setGeneratedImages(prev => {
+      const newMap = new Map(prev);
+      if (imageData) {
+        newMap.set(itemId, imageData);
+      } else {
+        newMap.delete(itemId);
+      }
+      return newMap;
+    });
+  };
+
+  // 批次下載所有圖片
+  const handleDownloadAll = async () => {
+    if (generatedImages.size === 0) {
+      alert('目前沒有已生成的圖片可下載');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      // 使用企劃名稱作為 ZIP 檔名（清理特殊字元）
+      const zipFileName = plan.plan_name
+        .replace(/[^\w\s-]/g, '') // 移除特殊字元
+        .replace(/\s+/g, '-') // 空格轉換為連字號
+        .toLowerCase() || 'marketing-assets';
+      
+      await downloadAllImages(generatedImages, items, zipFileName);
+    } catch (error) {
+      console.error('下載失敗:', error);
+      alert(error instanceof Error ? error.message : '下載失敗，請稍候再試');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleItemChange = (id: string, field: keyof ContentItem, value: string) => {
     const newItems = items.map(item => 
@@ -280,6 +345,28 @@ export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, 
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                         下載全案策略報告 (.txt)
+                    </button>
+                )}
+                
+                {/* 一鍵下載所有圖片按鈕（僅在 Production 模式顯示） */}
+                {mode === 'production' && (
+                    <button 
+                        onClick={handleDownloadAll}
+                        disabled={isDownloading || generatedImages.size === 0}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed border border-purple-500/30 rounded-lg text-sm text-white transition-all font-bold"
+                        title={generatedImages.size === 0 ? '請先生成圖片' : `下載 ${generatedImages.size} 張圖片`}
+                    >
+                        {isDownloading ? (
+                            <>
+                                <Spinner className="w-4 h-4" />
+                                打包中...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                下載所有圖片 ({generatedImages.size})
+                            </>
+                        )}
                     </button>
                 )}
             </div>
@@ -331,9 +418,17 @@ export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, 
                         方形主圖 (Main Visuals)
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        {mainImages.map(item => (
-                            <ProductionCard key={item.id} item={item} />
-                        ))}
+                        {mainImages.map((item, idx) => {
+                            const globalIndex = items.findIndex(i => i.id === item.id);
+                            return (
+                                <ProductionCard 
+                                    key={item.id} 
+                                    item={item} 
+                                    index={globalIndex >= 0 ? globalIndex : idx}
+                                    onImageChange={handleImageChange} 
+                                />
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -344,9 +439,17 @@ export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, 
                         內容介紹組圖 (Story Suite)
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                        {storySlides.map(item => (
-                            <ProductionCard key={item.id} item={item} />
-                        ))}
+                        {storySlides.map((item, idx) => {
+                            const globalIndex = items.findIndex(i => i.id === item.id);
+                            return (
+                                <ProductionCard 
+                                    key={item.id} 
+                                    item={item} 
+                                    index={globalIndex >= 0 ? globalIndex : idx}
+                                    onImageChange={handleImageChange} 
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             </div>
