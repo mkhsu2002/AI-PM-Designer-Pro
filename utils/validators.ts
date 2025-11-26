@@ -300,7 +300,8 @@ const ContentStrategySchema = z.object({
   contentTopics: z.array(ContentTopicSchema).min(2).max(5),
   interactiveElements: z.array(InteractiveElementSchema).min(1).max(5),
   ctaSuggestions: z.array(z.string().min(3).max(50)).min(2).max(5),
-  aiStudioPrompts: z.array(z.string().min(100).max(2000)).min(2).max(5),
+  aiStudioPrompts: z.array(z.string().min(200).max(3000)).min(2).max(5), // 增加最小長度要求，確保內容豐富
+  gammaPrompts: z.array(z.string().min(150).max(2500)).min(2).max(5),
 });
 
 /**

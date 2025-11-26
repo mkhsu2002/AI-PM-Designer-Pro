@@ -7,11 +7,11 @@ interface ContentStrategyProps {
 
 export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy }) => {
   const [expandedTopic, setExpandedTopic] = useState<number | null>(null);
-  const [copiedPrompt, setCopiedPrompt] = useState<number | null>(null);
+  const [copiedPrompt, setCopiedPrompt] = useState<{ index: number; type: 'aiStudio' | 'gamma' } | null>(null);
 
-  const copyToClipboard = (text: string, index: number) => {
+  const copyToClipboard = (text: string, index: number, type: 'aiStudio' | 'gamma') => {
     navigator.clipboard.writeText(text);
-    setCopiedPrompt(index);
+    setCopiedPrompt({ index, type });
     setTimeout(() => setCopiedPrompt(null), 2000);
   };
 
@@ -97,21 +97,48 @@ export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy }) =>
                     </div>
                   </div>
                   
-                  {/* AI Studio 提示詞 */}
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                      <h6 className="text-xs font-semibold text-gray-400">AI Studio 生成提示詞</h6>
-                      <button
-                        onClick={() => copyToClipboard(strategy.aiStudioPrompts[idx], idx)}
-                        className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 rounded text-xs text-green-300 transition-colors"
-                      >
-                        {copiedPrompt === idx ? '已複製！' : '複製提示詞'}
-                      </button>
+                  {/* 提示詞區塊 */}
+                  <div className="mt-4 pt-4 border-t border-white/10 space-y-4">
+                    {/* AI Studio 提示詞 */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h6 className="text-xs font-semibold text-gray-400">AI Studio 生成提示詞</h6>
+                          <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-[10px] font-bold rounded">React + Tailwind CSS</span>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard(strategy.aiStudioPrompts[idx], idx, 'aiStudio')}
+                          className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 rounded text-xs text-green-300 transition-colors"
+                        >
+                          {copiedPrompt?.index === idx && copiedPrompt?.type === 'aiStudio' ? '已複製！' : '複製提示詞'}
+                        </button>
+                      </div>
+                      <div className="bg-[#0a0a0d] rounded-lg p-4 border border-white/5">
+                        <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                          {strategy.aiStudioPrompts[idx]}
+                        </pre>
+                      </div>
                     </div>
-                    <div className="bg-[#0a0a0d] rounded-lg p-4 border border-white/5">
-                      <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
-                        {strategy.aiStudioPrompts[idx]}
-                      </pre>
+
+                    {/* Gamma.app 提示詞 */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h6 className="text-xs font-semibold text-gray-400">Gamma.app 生成提示詞</h6>
+                          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded">簡報/網頁</span>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard(strategy.gammaPrompts[idx], idx, 'gamma')}
+                          className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 rounded text-xs text-green-300 transition-colors"
+                        >
+                          {copiedPrompt?.index === idx && copiedPrompt?.type === 'gamma' ? '已複製！' : '複製提示詞'}
+                        </button>
+                      </div>
+                      <div className="bg-[#0a0a0d] rounded-lg p-4 border border-white/5">
+                        <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                          {strategy.gammaPrompts[idx]}
+                        </pre>
+                      </div>
                     </div>
                   </div>
                 </div>

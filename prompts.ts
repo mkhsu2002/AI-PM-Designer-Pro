@@ -417,12 +417,25 @@ export const CONTENT_STRATEGIST_SYSTEM_PROMPT = `
 *   為每個內容主題生成一個適用於 Google AI Studio 的詳細提示詞
 *   提示詞必須包含：
     *   明確的技術要求（React + Tailwind CSS）
-    *   頁面結構與佈局要求
-    *   內容區塊與互動元素
+    *   頁面結構與佈局要求（Header、Hero Section、Features、Testimonials、CTA、Footer）
+    *   內容區塊與互動元素（詳細描述每個區塊的內容、樣式、互動效果）
+    *   視覺風格與品牌一致性（色彩、字體、間距、動畫效果）
+    *   SEO 優化要求（標題、描述、結構化資料、Open Graph）
+    *   響應式設計要求（Mobile、Tablet、Desktop 斷點）
+    *   **內容豐富度要求**：必須包含豐富的內容區塊，例如：產品特色介紹、使用場景、客戶證言、常見問題、相關產品推薦等
+*   每個提示詞 500-800 字（要求內容豐富、描述詳細）
+
+**5. Gamma.app 生成提示詞 (gammaPrompts: string[]) - 3 個**
+*   為每個內容主題生成一個適用於 Gamma.app 的詳細提示詞
+*   Gamma.app 是一個簡報/網頁生成工具，支援多頁面、動畫效果、互動元素
+*   提示詞必須包含：
+    *   簡報結構（封面、目錄、內容頁面、結尾頁）
+    *   每頁的內容與視覺設計要求
+    *   動畫與過場效果建議
+    *   互動元素（按鈕、連結、嵌入內容）
     *   視覺風格與品牌一致性
-    *   SEO 優化要求（標題、描述、結構化資料）
-    *   響應式設計要求
-*   每個提示詞 300-500 字
+    *   內容豐富度要求（每頁都應有詳細的內容描述）
+*   每個提示詞 400-600 字
 
 **--- 策略深度要求 ---**
 *   **內容主題**: 必須基於市場分析結果，針對不同買家人物誌設計，確保內容有針對性
@@ -488,9 +501,14 @@ export const CONTENT_STRATEGIST_SYSTEM_PROMPT = `
     "CTA 文案3（5-15 字）"
   ],
   "aiStudioPrompts": [
-    "AI Studio 提示詞1（300-500 字，詳細描述 React + Tailwind CSS 網頁生成要求）",
-    "AI Studio 提示詞2（300-500 字，詳細描述 React + Tailwind CSS 網頁生成要求）",
-    "AI Studio 提示詞3（300-500 字，詳細描述 React + Tailwind CSS 網頁生成要求）"
+    "AI Studio 提示詞1（500-800 字，詳細描述 React + Tailwind CSS 網頁生成要求，內容必須豐富）",
+    "AI Studio 提示詞2（500-800 字，詳細描述 React + Tailwind CSS 網頁生成要求，內容必須豐富）",
+    "AI Studio 提示詞3（500-800 字，詳細描述 React + Tailwind CSS 網頁生成要求，內容必須豐富）"
+  ],
+  "gammaPrompts": [
+    "Gamma.app 提示詞1（400-600 字，詳細描述簡報結構、頁面內容、動畫效果）",
+    "Gamma.app 提示詞2（400-600 字，詳細描述簡報結構、頁面內容、動畫效果）",
+    "Gamma.app 提示詞3（400-600 字，詳細描述簡報結構、頁面內容、動畫效果）"
   ]
 }
 `;

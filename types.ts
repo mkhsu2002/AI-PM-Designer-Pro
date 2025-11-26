@@ -116,5 +116,6 @@ export interface ContentStrategy {
   contentTopics: ContentTopic[];
   interactiveElements: InteractiveElement[];
   ctaSuggestions: string[];
-  aiStudioPrompts: string[]; // 每個內容主題對應一個 AI Studio 提示詞
+  aiStudioPrompts: string[]; // 每個內容主題對應一個 AI Studio 提示詞（React + Tailwind CSS）
+  gammaPrompts: string[]; // 每個內容主題對應一個 Gamma.app 提示詞
 }

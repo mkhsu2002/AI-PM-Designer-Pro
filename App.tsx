@@ -480,7 +480,7 @@ const App: React.FC = () => {
         )}
 
         {/* Phase 3 Trigger */}
-        {(appState === AppState.SUITE_READY || appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && contentPlan && (
+        {(appState === AppState.SUITE_READY || appState === AppState.ANALYZING_MARKET || appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && contentPlan && (
           <div className="mt-12 border-t border-white/10 pt-12">
             <div className="bg-[#1e1e24] rounded-2xl p-8 border border-blue-500/20 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
@@ -492,13 +492,17 @@ const App: React.FC = () => {
                 </div>
                 <p className="text-gray-400 mb-6">根據第一及第二階段產生的產品相關資訊，生成完整的市場分析報告</p>
                 
-                {!marketAnalysis ? (
+                {appState === AppState.ANALYZING_MARKET ? (
+                  <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                    <Spinner className="w-12 h-12 text-blue-600" />
+                    <p className="text-blue-400 font-medium">正在分析市場數據...</p>
+                  </div>
+                ) : !marketAnalysis ? (
                   <button
                     onClick={handleGenerateMarketAnalysis}
-                    disabled={appState === AppState.ANALYZING_MARKET}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
                   >
-                    {appState === AppState.ANALYZING_MARKET ? '分析中...' : '開始市場分析'}
+                    開始市場分析
                   </button>
                 ) : (
                   <div className="mt-6">
@@ -511,7 +515,7 @@ const App: React.FC = () => {
         )}
 
         {/* Phase 4 Trigger */}
-        {(appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && marketAnalysis && (
+        {(appState === AppState.MARKET_READY || appState === AppState.ANALYZING_CONTENT || appState === AppState.CONTENT_READY) && marketAnalysis && (
           <div className="mt-12 border-t border-white/10 pt-12">
             <div className="bg-[#1e1e24] rounded-2xl p-8 border border-green-500/20 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-32 bg-green-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
@@ -523,13 +527,17 @@ const App: React.FC = () => {
                 </div>
                 <p className="text-gray-400 mb-6">基於第三階段的分析結果，生成專業的內容策略與 SEO 優化方案</p>
                 
-                {!contentStrategy ? (
+                {appState === AppState.ANALYZING_CONTENT ? (
+                  <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                    <Spinner className="w-12 h-12 text-green-600" />
+                    <p className="text-green-400 font-medium">正在生成內容策略...</p>
+                  </div>
+                ) : !contentStrategy ? (
                   <button
                     onClick={handleGenerateContentStrategy}
-                    disabled={appState === AppState.ANALYZING_CONTENT}
-                    className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+                    className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors"
                   >
-                    {appState === AppState.ANALYZING_CONTENT ? '生成中...' : '開始生成內容策略'}
+                    開始生成內容策略
                   </button>
                 ) : (
                   <div className="mt-6">
