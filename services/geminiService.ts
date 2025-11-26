@@ -3,6 +3,8 @@ import { DIRECTOR_SYSTEM_PROMPT, CONTENT_PLANNER_SYSTEM_PROMPT } from "../prompt
 import { DirectorOutput, ContentPlan, MarketingRoute, ProductAnalysis, ContentItem } from "../types";
 import { handleGeminiError, AppError, ErrorType } from "../utils/errorHandler";
 import { validateDirectorOutput, validateContentPlan } from "../utils/validators";
+import { extractImageColors, colorToPromptFragment } from "../utils/imageColorExtractor";
+import { isChineseMode, extractEnglishElements } from "../utils/languageMode";
 
 // --- Helpers ---
 
@@ -241,11 +243,20 @@ export const analyzeProductImage = async (
 export const generateContentPlan = async (
     route: MarketingRoute,
     analysis: ProductAnalysis,
-    referenceCopy: string
+    referenceCopy: string,
+    brandContext?: string
 ): Promise<ContentPlan> => {
     try {
       const apiKey = getApiKey();
       const ai = new GoogleGenAI({ apiKey });
+
+      // 分析品牌資訊中的英文元素
+      const englishElements = brandContext ? extractEnglishElements(brandContext) : null;
+      const languageNote = isChineseMode() 
+        ? (englishElements && (englishElements.hasEnglishSlogan || englishElements.hasEnglishBrandName)
+            ? `注意：品牌資訊中包含英文元素（Slogan: ${englishElements.englishSlogans.join(', ') || '無'}，品牌名稱: ${englishElements.englishBrandNames.join(', ') || '無'}）。在生成文案時，可以保留這些英文元素，但其他所有文字都必須使用繁體中文。`
+            : `注意：所有行銷文案都必須使用繁體中文。`)
+        : '';
 
       const promptText = `
         選定策略路線: ${route.route_name}
@@ -256,6 +267,8 @@ export const generateContentPlan = async (
         產品特點: ${analysis.key_features_zh}
         
         參考文案/競品資訊: ${referenceCopy || "無 (請自行規劃最佳結構)"}
+        
+        ${languageNote}
         
         請生成 8 張圖的完整內容企劃 (JSON)。
       `;
@@ -325,7 +338,23 @@ export const generateMarketingImage = async (
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: prompt }];
+    // 優化提示詞：如果有參考圖片，提取顏色並加入提示詞
+    let enhancedPrompt = prompt;
+    if (referenceImageBase64) {
+      try {
+        const colors = await extractImageColors(referenceImageBase64);
+        const colorFragment = colorToPromptFragment(colors);
+        if (colorFragment) {
+          // 將顏色資訊加入提示詞開頭，確保優先參考
+          enhancedPrompt = `${colorFragment}\n\n${prompt}`;
+        }
+      } catch (colorError) {
+        // 如果顏色提取失敗，繼續使用原始提示詞
+        console.warn('顏色提取失敗，使用原始提示詞:', colorError);
+      }
+    }
+
+    const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: enhancedPrompt }];
 
     if (referenceImageBase64) {
       const match = referenceImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);

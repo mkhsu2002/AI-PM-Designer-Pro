@@ -9,6 +9,7 @@ import { ApiKeyModal } from './components/ApiKeyModal';
 import { ContentSuite } from './components/ContentSuite';
 import { AppError, ErrorType } from './utils/errorHandler';
 import { validateProductName, validateBrandContext, validateRefCopy } from './utils/validators';
+import { LanguageMode, getLanguageMode, setLanguageMode, isChineseMode } from './utils/languageMode';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -36,6 +37,9 @@ const App: React.FC = () => {
   // API Key State
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [hasKey, setHasKey] = useState(false);
+  
+  // Language Mode State
+  const [languageMode, setLanguageModeState] = useState<LanguageMode>(getLanguageMode());
 
   // Check for API Key on mount
   useEffect(() => {
@@ -163,7 +167,8 @@ const App: React.FC = () => {
     setAppState(AppState.PLANNING);
     
     try {
-      const plan = await generateContentPlan(route, analysis, refCopy);
+      // 傳遞 brandContext 以便分析英文元素
+      const plan = await generateContentPlan(route, analysis, refCopy, brandContext);
       setContentPlan(plan);
       setEditedPlanItems(plan.items); // Initialize edited items with generated ones
       setAppState(AppState.SUITE_READY);
@@ -179,6 +184,15 @@ const App: React.FC = () => {
       }
       setAppState(AppState.RESULTS);
     }
+  };
+  
+  const handleLanguageModeChange = (mode: LanguageMode) => {
+    if (mode === LanguageMode.EN) {
+      // 英文模式目前為開發中，不允許切換
+      return;
+    }
+    setLanguageMode(mode);
+    setLanguageModeState(mode);
   };
 
   const handleDownloadReport = () => {
@@ -416,8 +430,36 @@ const App: React.FC = () => {
                   AI Product Marketing Designer <span className="text-purple-500 text-xs align-top ml-1">PRO</span>
                 </h1>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
                 <button onClick={() => setIsGuideOpen(true)} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">功能導覽 v2.9</button>
+                
+                {/* Language Mode Switcher */}
+                <div className="flex items-center gap-2 bg-[#1a1a1f] rounded-lg p-1 border border-white/10">
+                    <button
+                        onClick={() => handleLanguageModeChange(LanguageMode.ZH_TW)}
+                        className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                            languageMode === LanguageMode.ZH_TW
+                                ? 'bg-purple-600 text-white'
+                                : 'text-gray-400 hover:text-white'
+                        }`}
+                    >
+                        繁體中文
+                    </button>
+                    <button
+                        onClick={() => handleLanguageModeChange(LanguageMode.EN)}
+                        disabled
+                        className={`px-3 py-1 rounded text-xs font-bold transition-colors relative ${
+                            languageMode === LanguageMode.EN
+                                ? 'bg-purple-600 text-white'
+                                : 'text-gray-500 cursor-not-allowed opacity-50'
+                        }`}
+                        title="英文模式開發中"
+                    >
+                        英文
+                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-[8px] text-black font-bold px-1 rounded">開發中</span>
+                    </button>
+                </div>
+                
                 <button onClick={() => setIsKeyModalOpen(true)} className="text-purple-400 hover:text-purple-300 text-sm font-bold">
                     {hasKey ? '更換 API Key' : '設定 API Key'}
                 </button>
