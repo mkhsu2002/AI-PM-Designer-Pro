@@ -12,6 +12,7 @@ interface ContentSuiteProps {
   plan: ContentPlan;
   onPlanUpdate: (updatedItems: ContentItem[]) => void; // Callback to update parent with edited text
   onDownloadReport?: () => void; // Callback for download report button
+  onImagesGenerated?: (generatedImages: Map<string, string>) => void; // Callback when images are generated
 }
 
 // --- SUB-COMPONENT: Script Editor Row ---
@@ -248,7 +249,7 @@ const ProductionCard: React.FC<{
 };
 
 // --- MAIN COMPONENT ---
-export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, onDownloadReport }) => {
+export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, onDownloadReport, onImagesGenerated }) => {
   const [mode, setMode] = useState<'review' | 'production'>('review');
   const [items, setItems] = useState<ContentItem[]>(plan.items);
   // 追蹤所有已生成的圖片：Map<itemId, base64ImageData>
@@ -270,6 +271,10 @@ export const ContentSuite: React.FC<ContentSuiteProps> = ({ plan, onPlanUpdate, 
         newMap.set(itemId, imageData);
       } else {
         newMap.delete(itemId);
+      }
+      // 通知父組件圖片狀態變化
+      if (onImagesGenerated) {
+        onImagesGenerated(newMap);
       }
       return newMap;
     });

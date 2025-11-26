@@ -3,9 +3,11 @@ import { ContentStrategy as ContentStrategyType } from '../types';
 
 interface ContentStrategyProps {
   strategy: ContentStrategyType;
+  productName: string;
+  onDownload?: () => void;
 }
 
-export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy }) => {
+export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy, productName, onDownload }) => {
   const [expandedTopic, setExpandedTopic] = useState<number | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState<{ index: number; type: 'aiStudio' | 'gamma' } | null>(null);
 
@@ -20,6 +22,17 @@ export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy }) =>
       <div className="mb-10">
         <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
           <h3 className="text-xl font-bold text-white serif">Phase 4: 內容與 SEO 策略</h3>
+          {onDownload && (
+            <button
+              onClick={onDownload}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              下載策略報告
+            </button>
+          )}
         </div>
       </div>
 

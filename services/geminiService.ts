@@ -563,11 +563,25 @@ export const generateMarketAnalysis = async (
 export const generateContentStrategy = async (
   marketAnalysis: MarketAnalysis,
   productName: string,
-  selectedRoute: MarketingRoute
+  selectedRoute: MarketingRoute,
+  imageFileNames?: Map<string, string>,
+  imageDescriptions?: Map<string, string>
 ): Promise<ContentStrategy> => {
   try {
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
+
+    let imageMappingText = '';
+    if (imageFileNames && imageFileNames.size > 0 && imageDescriptions) {
+      const lines: string[] = [
+        'Phase 2 已生成的圖片檔名及其用途：'
+      ];
+      imageFileNames.forEach((filename, itemId) => {
+        const description = imageDescriptions.get(filename) || '產品圖片';
+        lines.push(`- ${filename}: ${description}`);
+      });
+      imageMappingText = '\n\n' + lines.join('\n') + '\n\n請在生成提示詞時，根據內容主題智能選擇合適的圖片，並在提示詞中明確指定圖片檔名。';
+    }
 
     const promptText = `
       產品名稱: ${productName}
@@ -579,7 +593,7 @@ export const generateContentStrategy = async (
       - 視覺風格: ${selectedRoute.style_brief_zh}
       
       市場分析結果:
-      ${JSON.stringify(marketAnalysis, null, 2)}
+      ${JSON.stringify(marketAnalysis, null, 2)}${imageMappingText}
       
       請根據以上市場分析結果生成專業的內容策略與 SEO 優化方案 (JSON)。
     `;

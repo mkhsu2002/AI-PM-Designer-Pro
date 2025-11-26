@@ -12,6 +12,9 @@ import { ContentStrategy as ContentStrategyComponent } from './components/Conten
 import { AppError, ErrorType } from './utils/errorHandler';
 import { validateProductName, validateBrandContext, validateRefCopy } from './utils/validators';
 import { LanguageMode, getLanguageMode, setLanguageMode, isChineseMode } from './utils/languageMode';
+import { generateImageDescriptionMap } from './utils/imageMapping';
+import { generateImageFileName, generateFileNameMap } from './utils/imageNaming';
+import { generatePhase1Report, generatePhase3Report, generatePhase4Report } from './utils/reportGenerator';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -36,6 +39,9 @@ const App: React.FC = () => {
   
   // Phase 4 Data
   const [contentStrategy, setContentStrategy] = useState<ContentStrategy | null>(null);
+  
+  // Phase 2 圖片追蹤（用於 Phase 4）
+  const [phase2GeneratedImages, setPhase2GeneratedImages] = useState<Map<string, string>>(new Map());
 
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [errorType, setErrorType] = useState<ErrorType | null>(null);
@@ -242,10 +248,32 @@ const App: React.FC = () => {
     
     try {
       const selectedRoute = analysisResult!.marketing_routes[activeRouteIndex];
+      
+      // 準備圖片檔名映射（如果 Phase 2 有生成圖片）
+      let imageFileNames: Map<string, string> | undefined;
+      let imageDescriptions: Map<string, string> | undefined;
+      
+      if (phase2GeneratedImages.size > 0 && editedPlanItems.length > 0) {
+        const generatedImageIds = new Set(phase2GeneratedImages.keys());
+        imageFileNames = generateFileNameMap(editedPlanItems);
+        imageDescriptions = generateImageDescriptionMap(editedPlanItems, generatedImageIds);
+        
+        // 只保留已生成的圖片
+        const filteredFileNames = new Map<string, string>();
+        imageFileNames.forEach((filename, itemId) => {
+          if (generatedImageIds.has(itemId)) {
+            filteredFileNames.set(itemId, filename);
+          }
+        });
+        imageFileNames = filteredFileNames;
+      }
+      
       const strategy = await generateContentStrategy(
         marketAnalysis,
         productName,
-        selectedRoute
+        selectedRoute,
+        imageFileNames,
+        imageDescriptions
       );
       setContentStrategy(strategy);
       setAppState(AppState.CONTENT_READY);
@@ -261,6 +289,11 @@ const App: React.FC = () => {
       }
       setAppState(AppState.MARKET_READY);
     }
+  };
+
+  // 處理 Phase 2 圖片生成
+  const handlePhase2ImagesGenerated = (generatedImages: Map<string, string>) => {
+    setPhase2GeneratedImages(generatedImages);
   };
 
   const handleDownloadReport = () => {
@@ -279,6 +312,51 @@ const App: React.FC = () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = `PRO_Strategy_Report_${analysisResult.product_analysis.name.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPhase1Report = () => {
+    if (!analysisResult) return;
+    
+    const textReport = generatePhase1Report(analysisResult, activeRouteIndex);
+    const blob = new Blob([textReport], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Phase1_視覺策略報告_${analysisResult.product_analysis.name.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPhase3Report = () => {
+    if (!marketAnalysis) return;
+    
+    const textReport = generatePhase3Report(marketAnalysis, productName);
+    const blob = new Blob([textReport], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Phase3_市場分析報告_${productName.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPhase4Report = () => {
+    if (!contentStrategy) return;
+    
+    const textReport = generatePhase4Report(contentStrategy, productName);
+    const blob = new Blob([textReport], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Phase4_內容策略報告_${productName.replace(/\s+/g, '_')}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -381,6 +459,15 @@ const App: React.FC = () => {
         <div className="mb-10">
            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
               <h3 className="text-xl font-bold text-white serif">Phase 1: 視覺策略選擇</h3>
+              <button
+                onClick={handleDownloadPhase1Report}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                下載策略報告
+              </button>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {analysisResult.marketing_routes.map((route, idx) => (
@@ -475,6 +562,7 @@ const App: React.FC = () => {
                     plan={contentPlan} 
                     onPlanUpdate={(newItems) => setEditedPlanItems(newItems)}
                     onDownloadReport={handleDownloadReport}
+                    onImagesGenerated={handlePhase2ImagesGenerated}
                 />
             </div>
         )}
@@ -506,7 +594,11 @@ const App: React.FC = () => {
                   </button>
                 ) : (
                   <div className="mt-6">
-                    <MarketAnalysisComponent analysis={marketAnalysis} productName={productName} />
+                    <MarketAnalysisComponent 
+                      analysis={marketAnalysis} 
+                      productName={productName}
+                      onDownload={handleDownloadPhase3Report}
+                    />
                   </div>
                 )}
               </div>
@@ -541,7 +633,11 @@ const App: React.FC = () => {
                   </button>
                 ) : (
                   <div className="mt-6">
-                    <ContentStrategyComponent strategy={contentStrategy} />
+                    <ContentStrategyComponent 
+                      strategy={contentStrategy}
+                      productName={productName}
+                      onDownload={handleDownloadPhase4Report}
+                    />
                   </div>
                 )}
               </div>
