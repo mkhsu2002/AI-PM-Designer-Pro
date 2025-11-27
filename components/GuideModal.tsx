@@ -29,7 +29,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
         <div className="p-8">
           <div className="flex items-center gap-3 mb-2">
              <span className="px-2 py-0.5 bg-purple-600 rounded text-xs font-bold text-white">PRO</span>
-             <h2 className="text-3xl font-bold serif text-white">功能導覽 v3.0</h2>
+             <h2 className="text-3xl font-bold serif text-white">功能導覽 v4.0</h2>
           </div>
           <p className="text-gray-400 text-sm mb-8">從單圖分析到全套社群行銷素材的完整生產線。</p>
 
@@ -78,8 +78,39 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 <h3 className="text-lg font-bold text-white mb-1">審閱與製作 (Review & Production)</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   <strong className="text-white">腳本審閱模式：</strong> 先確認 AI 寫好的 8 張圖文案與 Prompt，可自由編輯。<br/>
-                  <strong className="text-white">圖片製作模式：</strong> 逐一生成圖片。支援為每一張圖 **單獨上傳參考圖片** (例如：特定 Logo 放在最後一張 CTA)。
+                  <strong className="text-white">圖片製作模式：</strong> 逐一生成圖片。支援為每一張圖 **單獨上傳參考圖片** (例如：特定 Logo 放在最後一張 CTA)。<br/>
+                  <strong className="text-white">一鍵下載：</strong> 批次下載所有生成的圖片，自動 ZIP 打包，採用英文關鍵字命名規則。
                 </p>
+              </div>
+            </div>
+
+            {/* Step 5 */}
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-lg border border-blue-600/30">5</div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1">Phase 3: 產品市場分析 (v4.0 新增)</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  基於 Phase 1 選定的視覺策略，生成完整的市場分析報告：產品核心價值、目標市場定位、競爭對手分析（3 個）、買家人物誌（3 個）。完成後可下載市場分析報告。
+                </p>
+              </div>
+            </div>
+
+            {/* Step 6 */}
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-600/20 text-green-400 flex items-center justify-center font-bold text-lg border border-green-600/30">6</div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1">Phase 4: 內容與 SEO 策略 (v4.0 新增)</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-2">
+                  基於 Phase 3 的分析結果，生成專業的內容策略：
+                </p>
+                <ul className="list-disc list-inside text-xs text-gray-500 space-y-1 ml-1">
+                    <li><strong>內容主題</strong> (3 個)：標題、描述、關鍵字、SEO 指導</li>
+                    <li><strong>互動元素建議</strong> (2-3 個)</li>
+                    <li><strong>CTA 文案建議</strong> (3 個)</li>
+                    <li><strong>網頁生成提示詞</strong>：AI Studio 版本（React + Tailwind CSS）與 Gamma.app 版本（簡報/網頁）</li>
+                    <li><strong>自動引用 Phase 2 圖片</strong>：如果已生成圖片，提示詞會自動引用對應檔名</li>
+                    <li><strong>一鍵複製與開啟</strong>：複製提示詞後自動開啟對應的生成平台</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -89,7 +120,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="px-6 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors"
             >
-              開始體驗 v3.0
+              開始體驗 v4.0
             </button>
           </div>
         </div>

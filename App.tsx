@@ -665,7 +665,7 @@ const App: React.FC = () => {
                 </h1>
             </div>
             <div className="flex gap-4 items-center">
-                <button onClick={() => setIsGuideOpen(true)} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">功能導覽 v3.0</button>
+                <button onClick={() => setIsGuideOpen(true)} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">功能導覽 v4.0</button>
                 
                 {/* Language Mode Switcher */}
                 <div className="flex items-center gap-2 bg-[#1a1a1f] rounded-lg p-1 border border-white/10">
@@ -781,7 +781,7 @@ const App: React.FC = () => {
         {appState === AppState.IDLE && (
             <div className="flex-1 flex flex-col items-center mt-8 text-center">
                 <div className="inline-block px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-widest mb-6">
-                    New Version 3.0
+                    New Version 4.0
                 </div>
                 <h2 className="text-4xl md:text-6xl font-bold text-white serif mb-4 leading-tight">
                     打造完整的<br/>品牌視覺資產
