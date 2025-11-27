@@ -17,9 +17,12 @@ export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy, prod
     setCopiedPrompt({ index, type });
     setTimeout(() => setCopiedPrompt(null), 2000);
     
-    // 同時開啟 AI Studio 和 Gamma.app
-    window.open('https://aistudio.google.com/', '_blank');
-    window.open('https://gamma.app/', '_blank');
+    // 根據類型開啟對應的網站
+    if (type === 'aiStudio') {
+      window.open('https://aistudio.google.com/', '_blank');
+    } else if (type === 'gamma') {
+      window.open('https://gamma.app/', '_blank');
+    }
   };
 
   return (
