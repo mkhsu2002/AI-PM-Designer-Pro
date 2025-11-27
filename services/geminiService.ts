@@ -348,9 +348,12 @@ export const generateMarketingImage = async (
           // 將顏色資訊加入提示詞開頭，確保優先參考
           enhancedPrompt = `${colorFragment}\n\n${prompt}`;
         }
+        // 明確指示 AI 參考圖片風格
+        enhancedPrompt = `IMPORTANT: You are provided with a reference image. Please use it as a style guide for composition, color palette, lighting, and overall visual aesthetic. Match the reference image's style closely while following the prompt requirements.\n\n${enhancedPrompt}`;
       } catch (colorError) {
-        // 如果顏色提取失敗，繼續使用原始提示詞
+        // 如果顏色提取失敗，繼續使用原始提示詞，但仍加入參考圖指示
         console.warn('顏色提取失敗，使用原始提示詞:', colorError);
+        enhancedPrompt = `IMPORTANT: You are provided with a reference image. Please use it as a style guide for composition, color palette, lighting, and overall visual aesthetic. Match the reference image's style closely while following the prompt requirements.\n\n${enhancedPrompt}`;
       }
     }
     
@@ -368,8 +371,10 @@ export const generateMarketingImage = async (
       }
     }
 
-    const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: enhancedPrompt }];
+    const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
+    // 如果有參考圖片，先添加參考圖片，然後添加文字提示詞
+    // 這樣 AI 會先看到參考圖，然後根據提示詞生成
     if (referenceImageBase64) {
       const match = referenceImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
       if (match) {
@@ -381,6 +386,9 @@ export const generateMarketingImage = async (
           });
       }
     }
+    
+    // 添加文字提示詞
+    parts.push({ text: enhancedPrompt });
 
     // 使用高品質模型 gemini-3-pro-image-preview
     // 重試策略強化：Pro Image 模型較容易觸發限流，增加重試次數至 5 次

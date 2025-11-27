@@ -568,7 +568,7 @@ const App: React.FC = () => {
         )}
 
         {/* Phase 3 Trigger */}
-        {(appState === AppState.SUITE_READY || appState === AppState.ANALYZING_MARKET || appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && contentPlan && (
+        {(appState === AppState.SUITE_READY || appState === AppState.ANALYZING_MARKET || appState === AppState.MARKET_READY || appState === AppState.ANALYZING_CONTENT || appState === AppState.CONTENT_READY) && contentPlan && (
           <div className="mt-12 border-t border-white/10 pt-12">
             <div className="bg-[#1e1e24] rounded-2xl p-8 border border-blue-500/20 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
