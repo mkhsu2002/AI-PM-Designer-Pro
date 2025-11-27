@@ -627,7 +627,123 @@ export const generateContentStrategy = async (
     }
 
     try {
-      const cleaned = cleanJson(response.text);
+      let cleaned = cleanJson(response.text);
+      
+      // 嘗試修復常見的 JSON 格式問題
+      // 1. 修復提示詞陣列中的多行字串問題
+      // 使用更精確的正則表達式來匹配陣列內容
+      cleaned = cleaned.replace(/("aiStudioPrompts"\s*:\s*\[)([\s\S]*?)(\])/g, (match, start, content, end) => {
+        // 嘗試提取每個字串元素
+        const prompts: string[] = [];
+        let currentString = '';
+        let inString = false;
+        let escapeNext = false;
+        let depth = 0;
+        
+        for (let i = 0; i < content.length; i++) {
+          const char = content[i];
+          const nextChar = content[i + 1];
+          
+          if (escapeNext) {
+            currentString += char;
+            escapeNext = false;
+            continue;
+          }
+          
+          if (char === '\\') {
+            escapeNext = true;
+            currentString += char;
+            continue;
+          }
+          
+          if (char === '"' && !escapeNext) {
+            if (inString) {
+              // 結束字串
+              prompts.push(currentString);
+              currentString = '';
+              inString = false;
+            } else {
+              // 開始字串
+              inString = true;
+            }
+            continue;
+          }
+          
+          if (inString) {
+            currentString += char;
+          } else if (char === '[') {
+            depth++;
+          } else if (char === ']') {
+            depth--;
+          }
+        }
+        
+        // 重新構建陣列，確保每個字串都正確轉義
+        const fixedPrompts = prompts.map(p => {
+          // 轉義特殊字元
+          const escaped = p
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t');
+          return `"${escaped}"`;
+        }).join(',');
+        
+        return `${start}${fixedPrompts}${end}`;
+      });
+      
+      // 同樣處理 gammaPrompts
+      cleaned = cleaned.replace(/("gammaPrompts"\s*:\s*\[)([\s\S]*?)(\])/g, (match, start, content, end) => {
+        const prompts: string[] = [];
+        let currentString = '';
+        let inString = false;
+        let escapeNext = false;
+        
+        for (let i = 0; i < content.length; i++) {
+          const char = content[i];
+          
+          if (escapeNext) {
+            currentString += char;
+            escapeNext = false;
+            continue;
+          }
+          
+          if (char === '\\') {
+            escapeNext = true;
+            currentString += char;
+            continue;
+          }
+          
+          if (char === '"' && !escapeNext) {
+            if (inString) {
+              prompts.push(currentString);
+              currentString = '';
+              inString = false;
+            } else {
+              inString = true;
+            }
+            continue;
+          }
+          
+          if (inString) {
+            currentString += char;
+          }
+        }
+        
+        const fixedPrompts = prompts.map(p => {
+          const escaped = p
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t');
+          return `"${escaped}"`;
+        }).join(',');
+        
+        return `${start}${fixedPrompts}${end}`;
+      });
+      
       const parsed = JSON.parse(cleaned);
       
       console.log('內容策略 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
@@ -639,6 +755,22 @@ export const generateContentStrategy = async (
       
       if (e instanceof AppError) {
         throw e;
+      }
+      
+      // 嘗試更簡單的修復策略：直接使用 JSON5 或手動修復
+      try {
+        let cleaned = response.text.trim();
+        // 移除 markdown 代碼塊
+        cleaned = cleaned.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+        cleaned = cleaned.replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+        
+        // 嘗試使用更寬鬆的解析方式
+        // 如果解析失敗，嘗試提取並重新構建 JSON
+        const parsed = JSON.parse(cleaned);
+        console.warn('使用簡單修復策略成功解析 JSON');
+        return validateContentStrategy(parsed);
+      } catch (repairError) {
+        console.error("修復策略也失敗:", repairError);
       }
       
       const errorMessage = e instanceof Error ? e.message : String(e);
