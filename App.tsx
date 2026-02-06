@@ -600,7 +600,7 @@ function App() {
               <div className="flex flex-col gap-4">
                 <input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="產品名稱" className="w-full bg-[#15151a] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 outline-none" />
                 <textarea value={brandContext} onChange={(e) => setBrandContext(e.target.value)} placeholder="品牌資訊 / 背景" className="w-full bg-[#15151a] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 outline-none h-40 resize-none text-sm" />
-                {selectedFile && <button onClick={wrappedHandleAnalyze} className="mt-auto w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-lg hover:opacity-90 transition-opacity">開始 AI 分析</button>}
+                {productName && <button onClick={wrappedHandleAnalyze} className="mt-auto w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-lg hover:opacity-90 transition-opacity">開始 AI 分析</button>}
               </div>
             </div>
           </div>

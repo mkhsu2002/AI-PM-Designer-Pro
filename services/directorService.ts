@@ -33,25 +33,31 @@ const fileToGenerativePart = async (file: File) => {
 };
 
 export const analyzeProductImage = async (
-    file: File,
+    file: File | null,
     productName: string,
     brandContext: string
 ): Promise<DirectorOutput> => {
     try {
         const ai = getGeminiClient();
-        const imagePart = await fileToGenerativePart(file);
+        const parts: any[] = [];
+
+        if (file) {
+            const imagePart = await fileToGenerativePart(file);
+            parts.push(imagePart);
+        }
 
         const promptText = `
       產品名稱: ${productName || "未提供"}
       品牌/背景資訊: ${brandContext || "未提供"}
-      請根據上述資訊與圖片，執行視覺行銷總監的分析任務。
+      請根據上述資訊${file ? '與圖片' : ''}，執行視覺行銷總監的分析任務。
     `;
+        parts.push({ text: promptText });
 
         const response = await retryWithBackoff(async () => {
             return await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: {
-                    parts: [imagePart, { text: promptText }],
+                    parts: parts,
                 },
                 config: {
                     systemInstruction: DIRECTOR_SYSTEM_PROMPT,

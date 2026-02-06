@@ -21,8 +21,6 @@ export const useWorkflow = () => {
     } = useApp();
 
     const handleAnalyze = async () => {
-        if (!selectedFile) return;
-
         const nameVal = validateProductName(productName);
         const contextVal = validateBrandContext(brandContext);
         if (!nameVal.valid || !contextVal.valid) throw new Error("Validation failed");
@@ -58,7 +56,7 @@ export const useWorkflow = () => {
     };
 
     const handleGenerateMarketAnalysis = async () => {
-        if (!analysisResult || !imagePreview) return;
+        if (!analysisResult) return;
         setAppState(AppState.ANALYZING_MARKET);
         try {
             const route = analysisResult.marketing_routes[activeRouteIndex];

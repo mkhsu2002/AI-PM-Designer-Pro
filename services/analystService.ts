@@ -7,15 +7,17 @@ import { retryWithBackoff, getGeminiClient, cleanJson } from "./baseService";
 export const generateMarketAnalysis = async (
     productName: string,
     selectedRoute: MarketingRoute,
-    productImageBase64: string
+    productImageBase64?: string
 ): Promise<MarketAnalysis> => {
     try {
         const ai = getGeminiClient();
         const promptText = `產品名稱: ${productName}\n選定策略: ${selectedRoute.route_name}...`;
         const parts: any[] = [{ text: promptText }];
 
-        const match = productImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
-        if (match) parts.push({ inlineData: { data: match[2], mimeType: match[1] } });
+        if (productImageBase64) {
+            const match = productImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (match) parts.push({ inlineData: { data: match[2], mimeType: match[1] } });
+        }
 
         const response = await retryWithBackoff(async () => {
             return await ai.models.generateContent({
