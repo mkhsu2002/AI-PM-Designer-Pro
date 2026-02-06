@@ -19,7 +19,7 @@ export const generateMarketAnalysis = async (
 
         const response = await retryWithBackoff(async () => {
             return await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-1.5-flash",
                 contents: { parts },
                 config: {
                     systemInstruction: MARKET_ANALYST_SYSTEM_PROMPT,
