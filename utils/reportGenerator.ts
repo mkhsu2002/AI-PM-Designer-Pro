@@ -1,9 +1,4 @@
-/**
- * 報告生成工具
- * 為各個 Phase 生成可下載的文字報告
- */
-
-import { DirectorOutput, MarketAnalysis, ContentStrategy, MarketingRoute, ProductAnalysis } from '../types';
+import { DirectorOutput, MarketAnalysis, ContentStrategy, MarketingRoute, ProductAnalysis, ContentPlan, ContentItem } from '../types';
 
 /**
  * 生成 Phase 1 報告
@@ -160,3 +155,39 @@ export const generatePhase4Report = (
   return report;
 };
 
+/**
+ * 生成完整 PRO 報告 (Phase 1 + 2)
+ */
+export const generateFullReport = (
+  analysis: ProductAnalysis,
+  routes: MarketingRoute[],
+  selectedRouteIndex: number,
+  plan: ContentPlan,
+  editedItems: ContentItem[]
+): string => {
+  const route = routes[selectedRouteIndex];
+  const date = new Date().toLocaleDateString('zh-TW');
+
+  let report = `AI Product Marketing Designer PRO v4.0 - 完整策略與內容報告\n`;
+  report += `生成日期: ${date}\n`;
+  report += `=================================================\n\n`;
+
+  report += `[1. 產品分析]\n`;
+  report += `產品名稱: ${analysis.name}\n`;
+  report += `視覺描述: ${analysis.visual_description}\n\n`;
+
+  report += `[2. 選定策略: ${route.route_name}]\n`;
+  report += `標題: ${route.headline_zh}\n`;
+  report += `風格: ${route.style_brief_zh}\n\n`;
+
+  report += `[3. 內容企劃 (8張圖)]\n`;
+  editedItems.forEach((item, idx) => {
+    report += `\n--- 圖 ${idx + 1}: ${item.title_zh} ---\n`;
+    report += `類型: ${item.type}\n`;
+    report += `文案: ${item.copy_zh}\n`;
+    report += `畫面摘要: ${item.visual_summary_zh}\n`;
+    report += `繪圖指令 (EN):\n${item.visual_prompt_en}\n`;
+  });
+
+  return report;
+};

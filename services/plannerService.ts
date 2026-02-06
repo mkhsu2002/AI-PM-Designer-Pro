@@ -44,7 +44,7 @@ export const generateContentPlan = async (
             });
         });
 
-        if (!response.text) throw new AppError({ type: ErrorType.API, message: "Gemini Planning failed" });
+        if (!response.text) throw new AppError({ type: ErrorType.API, message: "Gemini Planning failed", userMessage: "生成規劃時發生錯誤，請稍後再試。" });
 
         const cleaned = cleanJson(response.text);
         return validateContentPlan(JSON.parse(cleaned));
@@ -94,7 +94,7 @@ export const generateMarketingImage = async (
         const part = response.candidates?.[0]?.content.parts.find(p => p.inlineData?.data);
         if (part?.inlineData) return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
 
-        throw new AppError({ type: ErrorType.API, message: "No image data" });
+        throw new AppError({ type: ErrorType.API, message: "No image data", userMessage: "無法生成圖片資料，請稍後再試。" });
     } catch (error) {
         if (error instanceof AppError) throw error;
         handleGeminiError(error);
