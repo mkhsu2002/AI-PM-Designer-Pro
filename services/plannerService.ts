@@ -10,7 +10,8 @@ export const generateContentPlan = async (
     route: MarketingRoute,
     analysis: ProductAnalysis,
     referenceCopy: string,
-    brandContext?: string
+    brandContext?: string,
+    productImageBase64?: string
 ): Promise<ContentPlan> => {
     try {
         const ai = getGeminiClient();
@@ -32,10 +33,16 @@ export const generateContentPlan = async (
         請生成 8 張圖的完整內容企劃 (JSON)。
       `;
 
+        const parts: any[] = [{ text: promptText }];
+        if (productImageBase64) {
+            const match = productImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (match) parts.push({ inlineData: { data: match[2], mimeType: match[1] } });
+        }
+
         const response = await retryWithBackoff(async () => {
             return await ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: { parts: [{ text: promptText }] },
+                model: "gemini-1.5-flash",
+                contents: { parts },
                 config: {
                     systemInstruction: CONTENT_PLANNER_SYSTEM_PROMPT,
                     responseMimeType: "application/json",

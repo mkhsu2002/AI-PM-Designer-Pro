@@ -47,7 +47,7 @@ export const useWorkflow = () => {
 
         setAppState(AppState.PLANNING);
         try {
-            const plan = await generateContentPlan(route, analysis, refCopy, brandContext);
+            const plan = await generateContentPlan(route, analysis, refCopy, brandContext, imagePreview || undefined);
             setContentPlan(plan);
             setEditedPlanItems(plan.items);
             setAppState(AppState.SUITE_READY);

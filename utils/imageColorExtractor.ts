@@ -19,7 +19,7 @@ export const extractImageColors = async (imageBase64: string): Promise<{
         try {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          
+
           if (!ctx) {
             reject(new Error('無法建立 Canvas 上下文'));
             return;
@@ -52,7 +52,7 @@ export const extractImageColors = async (imageBase64: string): Promise<{
             if (a < 128) continue;
 
             const key = `${r},${g},${b}`;
-            const existing = colorBuckets.find(bucket => 
+            const existing = colorBuckets.find(bucket =>
               bucket.r === r && bucket.g === g && bucket.b === b
             );
 
@@ -135,19 +135,25 @@ const describeColor = (r: number, g: number, b: number, hue: number): string => 
   const brightness = (r + g + b) / 3;
   const saturation = getSaturation(r, g, b);
 
-  // 根據色調分類
-  if (hue >= 0 && hue < 30) return '紅色';
-  if (hue >= 30 && hue < 60) return '橙紅色';
-  if (hue >= 60 && hue < 90) return '橙色';
-  if (hue >= 90 && hue < 150) return '黃色';
-  if (hue >= 150 && hue < 210) return '綠色';
-  if (hue >= 210 && hue < 270) return '青色';
-  if (hue >= 270 && hue < 330) return '藍色';
-  if (hue >= 330 && hue < 360) return '紫色';
+  // 1. 處理低飽和度（中性色：黑、白、灰）
+  if (saturation < 15) {
+    if (brightness < 50) return '黑色';
+    if (brightness > 200) return '白色';
+    return '灰色';
+  }
 
-  // 根據亮度分類
-  if (brightness < 50) return '深色';
-  if (brightness > 200) return '淺色';
+  // 2. 處理高亮度或低亮度但有飽和度的顏色
+  if (brightness < 30 && saturation < 30) return '深色';
+  if (brightness > 240 && saturation < 20) return '皮革白';
+
+  // 3. 根據色調分類
+  if (hue >= 0 && hue < 25) return '紅色';
+  if (hue >= 25 && hue < 45) return '橙紅色';
+  if (hue >= 45 && hue < 75) return '橙黃色';
+  if (hue >= 75 && hue < 165) return '綠色';
+  if (hue >= 165 && hue < 255) return '藍色';
+  if (hue >= 255 && hue < 315) return '紫色';
+  if (hue >= 315 && hue < 360) return '桃紅色';
 
   return '中性色';
 };
