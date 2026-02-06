@@ -115,7 +115,65 @@ function App() {
     }
   };
 
-  const handlePhase2ImagesGenerated = (images: string[]) => {
+  const handleDownloadPhase1 = () => {
+    if (!analysisResult) return;
+    const report = generatePhase1Report(analysisResult, activeRouteIndex);
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Phase1_Report_${productName.replace(/\s+/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPhase3 = () => {
+    if (!marketAnalysis) return;
+    const report = generatePhase3Report(marketAnalysis, productName);
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Phase3_Report_${productName.replace(/\s+/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPhase4 = () => {
+    if (!contentStrategy) return;
+    const report = generatePhase4Report(contentStrategy, productName);
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Phase4_Report_${productName.replace(/\s+/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadReport = () => {
+    if (!analysisResult || !contentPlan) return;
+    const report = generateFullReport(
+      analysisResult.product_analysis,
+      analysisResult.marketing_routes,
+      activeRouteIndex,
+      contentPlan,
+      editedPlanItems
+    );
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Full_Report_${productName.replace(/\s+/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleLanguageModeChange = (mode: LanguageMode) => {
+    setLanguageMode(mode);
+  };
+
+  const handlePhase2ImagesGenerated = (images: Map<string, string>) => {
     setPhase2GeneratedImages(images);
   };
 
@@ -476,156 +534,88 @@ function App() {
               <p className="text-red-300/70 text-xs mt-3">
                 💡 提示：API 請求次數已達上限，請稍候 1-2 分鐘後再試，或檢查您的 API 配額設定。
               </p>
-    {/* Header */}
-            <header className="w-full py-6 border-b border-white/5 bg-[#0f0f12]/90 backdrop-blur-md sticky top-0 z-50">
-              <div className="container mx-auto px-6 flex items-center justify-between">
-                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAppState(AppState.IDLE)}>
-                  <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-600/50">
-                    <span className="text-white font-bold">PM</span>
-                  </div>
-                  <h1 className="text-lg font-bold text-white hidden md:block">
-                    AI Product Marketing Designer <span className="text-purple-500 text-xs align-top ml-1">PRO</span>
-                  </h1>
-                </div>
-                <div className="flex gap-4 items-center">
-                  <button onClick={() => setIsGuideOpen(true)} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">功能導覽 v4.0</button>
-
-                  {/* Language Mode Switcher */}
-                  <div className="flex items-center gap-2 bg-[#1a1a1f] rounded-lg p-1 border border-white/10">
-                    <button
-                      onClick={() => handleLanguageModeChange(LanguageMode.ZH_TW)}
-                      className={`px-3 py-1 rounded text-xs font-bold transition-colors ${languageMode === LanguageMode.ZH_TW
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-400 hover:text-white'
-                        }`}
-                    >
-                      繁體中文
-                    </button>
-                    <button
-                      onClick={() => handleLanguageModeChange(LanguageMode.EN)}
-                      disabled
-                      className={`px-3 py-1 rounded text-xs font-bold transition-colors relative ${languageMode === LanguageMode.EN
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-500 cursor-not-allowed opacity-50'
-                        }`}
-                      title="英文模式開發中"
-                    >
-                      英文
-                      <span className="absolute -top-1 -right-1 bg-yellow-500 text-[8px] text-black font-bold px-1 rounded">開發中</span>
-                    </button>
-                  </div>
-
-                  <button onClick={() => setIsKeyModalOpen(true)} className="text-purple-400 hover:text-purple-300 text-sm font-bold">
-                    {hasKey ? '更換 API Key' : '設定 API Key'}
-                  </button>
-                </div>
-              </div>
-            </header>
-
-            <main className="container mx-auto px-4 py-8 flex-1 flex flex-col">
-              {/* Global Error */}
-              {errorMsg && (
-                <div className="w-full max-w-5xl mx-auto mb-8 p-6 bg-red-900/20 border border-red-500/50 rounded-xl text-left shadow-lg overflow-hidden">
-                  <div className="flex items-center justify-between mb-4 border-b border-red-500/30 pb-2">
-                    <h3 className="text-red-400 font-bold flex items-center gap-2 text-lg">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      {errorType === ErrorType.AUTH ? '認證錯誤' :
-                        errorType === ErrorType.NETWORK ? '網路錯誤' :
-                          errorType === ErrorType.RATE_LIMIT ? '請求限制' :
-                            errorType === ErrorType.VALIDATION ? '驗證錯誤' :
-                              '發生錯誤'}
-                    </h3>
-                    <button onClick={() => {
-                      setAppState(AppState.IDLE);
-                      setErrorMsg("");
-                      setErrorType(null);
-                    }} className="text-sm text-red-300 hover:text-white underline">重置並返回首頁</button>
-                  </div>
-                  <p className="text-red-200 text-sm leading-relaxed">
-                    {errorMsg}
-                  </p>
-                  {errorType === ErrorType.RATE_LIMIT && (
-                    <p className="text-red-300/70 text-xs mt-3">
-                      💡 提示：API 請求次數已達上限，請稍候 1-2 分鐘後再試，或檢查您的 API 配額設定。
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Loading States */}
-              {(appState === AppState.ANALYZING) && (
-                <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
-                  <div className="relative">
-                    <Spinner className="w-20 h-20 text-purple-600" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-10 h-10 bg-white rounded-full opacity-10 animate-ping"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">AI 總監正在分析產品</h2>
-                    <p className="text-gray-400">正在解讀品牌語意與視覺特徵...</p>
-                  </div>
-                </div>
-              )}
-
-              {(appState === AppState.ANALYZING_MARKET) && (
-                <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
-                  <div className="relative">
-                    <Spinner className="w-20 h-20 text-blue-600" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-10 h-10 bg-white rounded-full opacity-10 animate-ping"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Phase 3: 市場分析中</h2>
-                    <p className="text-gray-400">正在分析產品核心價值、市場定位、競爭對手與潛在客戶...</p>
-                  </div>
-                </div>
-              )}
-
-              {(appState === AppState.ANALYZING_CONTENT) && (
-                <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
-                  <div className="relative">
-                    <Spinner className="w-20 h-20 text-green-600" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-10 h-10 bg-white rounded-full opacity-10 animate-ping"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Phase 4: 內容策略生成中</h2>
-                    <p className="text-gray-400">正在生成內容主題、SEO 策略與 AI Studio 提示詞...</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Main Views */}
-              {appState === AppState.IDLE && (
-                <div className="flex-1 flex flex-col items-center mt-8 text-center">
-                  <div className="inline-block px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-widest mb-6">
-                    New Version 4.0
-                  </div>
-                  <h2 className="text-4xl md:text-6xl font-bold text-white serif mb-4 leading-tight">
-                    打造完整的<br />品牌視覺資產
-                  </h2>
-                  <p className="text-gray-400 max-w-xl mx-auto mb-8 text-lg">
-                    結合產品識別、品牌故事與競品策略。<br />
-                    一鍵生成廣告海報與 <span className="text-purple-400 font-bold">8 張完整的社群行銷套圖</span>。
-                  </p>
-                  {renderInputs()}
-                </div>
-              )}
-
-              {(appState === AppState.RESULTS || appState === AppState.PLANNING || appState === AppState.SUITE_READY ||
-                appState === AppState.ANALYZING_MARKET || appState === AppState.MARKET_READY ||
-                appState === AppState.ANALYZING_CONTENT || appState === AppState.CONTENT_READY) && renderPhase1Results()}
-
-            </main>
-
-            <footer className="w-full py-6 text-center border-t border-white/5 text-xs text-gray-600">
-              Open sourced by <a href="https://flypigai.icareu.tw/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors font-bold">FlyPig AI</a>
-            </footer>
+            )}
           </div>
-        );
-};
+        )}
 
-        export default App;
+        {/* Loading States */}
+        {(appState === AppState.ANALYZING) && (
+          <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
+            <Spinner className="w-20 h-20 text-purple-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">AI 總監正在分析產品</h2>
+              <p className="text-gray-400">正在解讀品牌語意與視覺特徵...</p>
+            </div>
+          </div>
+        )}
+
+        {(appState === AppState.ANALYZING_MARKET) && (
+          <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
+            <Spinner className="w-20 h-20 text-blue-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Phase 3: 市場分析中</h2>
+              <p className="text-gray-400">正在分析產品核心價值、市場定位、競爭對手與潛在客戶...</p>
+            </div>
+          </div>
+        )}
+
+        {(appState === AppState.ANALYZING_CONTENT) && (
+          <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
+            <Spinner className="w-20 h-20 text-green-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Phase 4: 內容策略生成中</h2>
+              <p className="text-gray-400">正在生成內容主題、SEO 策略與 AI Studio 提示詞...</p>
+            </div>
+          </div>
+        )}
+
+        {(appState === AppState.PLANNING) && (
+          <div className="flex flex-col items-center justify-center mt-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
+            <Spinner className="w-20 h-20 text-purple-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Phase 2: 正在規劃腳本</h2>
+              <p className="text-gray-400">正在生成 8 張圖行銷素材包...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Main Views */}
+        {appState === AppState.IDLE && (
+          <div className="flex-1 flex flex-col items-center mt-8 text-center">
+            <div className="inline-block px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-widest mb-6">
+              New Version 4.1
+            </div>
+            <h2 className="text-4xl md:text-6xl font-bold text-white serif mb-4 leading-tight">
+              打造完整的<br />品牌視覺資產
+            </h2>
+            <p className="text-gray-400 max-w-xl mx-auto mb-8 text-lg">
+              結合產品識別、品牌故事與競品策略。<br />
+              一鍵生成廣告海報與 <span className="text-purple-400 font-bold">8 張完整的社群行銷套圖</span>。
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mt-8">
+              <label className="flex flex-col items-center justify-center w-full h-80 border-2 border-dashed border-gray-600 rounded-2xl cursor-pointer hover:bg-[#1a1a1f] relative overflow-hidden">
+                {imagePreview ? <img src={imagePreview} className="w-full h-full object-contain p-4" /> : <p className="text-sm text-gray-400">上傳產品圖片</p>}
+                <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
+              </label>
+              <div className="flex flex-col gap-4">
+                <input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="產品名稱" className="w-full bg-[#15151a] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 outline-none" />
+                <textarea value={brandContext} onChange={(e) => setBrandContext(e.target.value)} placeholder="品牌資訊 / 背景" className="w-full bg-[#15151a] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-purple-500 outline-none h-40 resize-none text-sm" />
+                {selectedFile && <button onClick={wrappedHandleAnalyze} className="mt-auto w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-lg hover:opacity-90 transition-opacity">開始 AI 分析</button>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(appState === AppState.RESULTS || appState === AppState.SUITE_READY ||
+          appState === AppState.MARKET_READY || appState === AppState.CONTENT_READY) && renderPhase1Results()}
+
+      </main>
+
+      <footer className="w-full py-6 text-center border-t border-white/5 text-xs text-gray-600">
+        Open sourced by <a href="https://flypigai.icareu.tw/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors font-bold">FlyPig AI</a>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
