@@ -12,17 +12,9 @@ export const ContentStrategy: React.FC<ContentStrategyProps> = ({ strategy, prod
   const [copiedPrompt, setCopiedPrompt] = useState<{ index: number; type: 'aiStudio' | 'gamma' } | null>(null);
 
   const copyToClipboard = (text: string, index: number, type: 'aiStudio' | 'gamma') => {
-    // 複製提示詞到剪貼板
     navigator.clipboard.writeText(text);
     setCopiedPrompt({ index, type });
     setTimeout(() => setCopiedPrompt(null), 2000);
-    
-    // 根據類型開啟對應的網站
-    if (type === 'aiStudio') {
-      window.open('https://aistudio.google.com/', '_blank');
-    } else if (type === 'gamma') {
-      window.open('https://gamma.app/', '_blank');
-    }
   };
 
   return (
