@@ -338,22 +338,27 @@ export const generateMarketingImage = async (
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    // 優化提示詞：如果有參考圖片，提取顏色並加入提示詞
+    // 優化提示詞：如果有參考圖片，提取顏色並加入提示詞，並強制產品顏色與 Logo/文字依參考圖
     let enhancedPrompt = prompt;
     if (referenceImageBase64) {
+      const referenceInstructions = [
+        'CRITICAL - Reference image rules (you MUST follow):',
+        '1. PRODUCT COLORS: The product (e.g. body, handle, strap) must use ONLY the colors visible on the product in the reference image. Do NOT use red, crimson, or scarlet for the product unless the reference image clearly shows the product in red.',
+        '2. LOGO & BRAND: Any logo, brand mark, label, or text ON the product (e.g. on strap, tag, body) must be replicated EXACTLY as in the reference image—same design, same wording, same placement. Do not invent or change logos or text.',
+        '3. NO INVENTED COLORS: Do not add colors to the product that are not present in the reference image. If the reference product is silver, gray, black, or white, keep it that way—do not render it red.',
+      ].join('\n');
+
       try {
         const colors = await extractImageColors(referenceImageBase64);
         const colorFragment = colorToPromptFragment(colors);
         if (colorFragment) {
-          // 將顏色資訊加入提示詞開頭，確保優先參考
-          enhancedPrompt = `${colorFragment}\n\n${prompt}`;
+          enhancedPrompt = `${referenceInstructions}\n\n${colorFragment}\n\n${prompt}`;
+        } else {
+          enhancedPrompt = `${referenceInstructions}\n\n${prompt}`;
         }
-        // 明確指示 AI 參考圖片風格
-        enhancedPrompt = `IMPORTANT: You are provided with a reference image. Please use it as a style guide for composition, color palette, lighting, and overall visual aesthetic. Match the reference image's style closely while following the prompt requirements.\n\n${enhancedPrompt}`;
       } catch (colorError) {
-        // 如果顏色提取失敗，繼續使用原始提示詞，但仍加入參考圖指示
         console.warn('顏色提取失敗，使用原始提示詞:', colorError);
-        enhancedPrompt = `IMPORTANT: You are provided with a reference image. Please use it as a style guide for composition, color palette, lighting, and overall visual aesthetic. Match the reference image's style closely while following the prompt requirements.\n\n${enhancedPrompt}`;
+        enhancedPrompt = `${referenceInstructions}\n\n${prompt}`;
       }
     }
 
@@ -441,7 +446,7 @@ export const generateFullReport = (
   const route = routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString();
 
-  let report = `AI PM Designer PRO v1.0 - Product Marketing Strategy Report\n`;
+  let report = `AI PM Designer PRO v1.01 - Product Marketing Strategy Report\n`;
   report += `Date: ${date}\n`;
   report += `=================================================\n\n`;
 

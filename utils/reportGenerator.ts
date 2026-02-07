@@ -15,7 +15,7 @@ export const generatePhase1Report = (
   const route = analysis.marketing_routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString('zh-TW');
 
-  let report = `AI Product Marketing Designer PRO v1.0 - Phase 1 視覺策略報告\n`;
+  let report = `AI Product Marketing Designer PRO v1.01 - Phase 1 視覺策略報告\n`;
   report += `生成日期: ${date}\n`;
   report += `=================================================\n\n`;
 
@@ -55,7 +55,7 @@ export const generatePhase3Report = (
 ): string => {
   const date = new Date().toLocaleDateString('zh-TW');
 
-  let report = `AI Product Marketing Designer PRO v1.0 - Phase 3 市場分析報告\n`;
+  let report = `AI Product Marketing Designer PRO v1.01 - Phase 3 市場分析報告\n`;
   report += `產品名稱: ${productName}\n`;
   report += `生成日期: ${date}\n`;
   report += `=================================================\n\n`;
@@ -125,7 +125,7 @@ export const generatePhase4Report = (
 ): string => {
   const date = new Date().toLocaleDateString('zh-TW');
 
-  let report = `AI Product Marketing Designer PRO v1.0 - Phase 4 內容策略報告\n`;
+  let report = `AI Product Marketing Designer PRO v1.01 - Phase 4 內容策略報告\n`;
   report += `產品名稱: ${productName}\n`;
   report += `生成日期: ${date}\n`;
   report += `=================================================\n\n`;

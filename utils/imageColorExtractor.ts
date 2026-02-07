@@ -174,7 +174,12 @@ export const colorToPromptFragment = (colors: {
   }
 
   const colorList = colors.dominantColors.join(', ');
-  return `Use the following color palette extracted from the reference product image: ${colorList}. Ensure the generated image prominently features these colors, especially for the product itself. The color scheme should be: ${colors.description}`;
+  return [
+    `Use the following color palette extracted from the reference product image: ${colorList}.`,
+    `The product itself must be rendered ONLY in these colors (or colors clearly visible on the product in the reference).`,
+    `Do NOT use red, crimson, or scarlet for the product unless the reference image clearly shows the product in red.`,
+    `Color scheme: ${colors.description}`,
+  ].join(' ');
 };
 
 
