@@ -72,21 +72,21 @@ const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: s
 const serializeError = (error: unknown): string => {
   try {
     if (typeof error === 'string') return error;
-    
+
     if (error instanceof Error) {
       const errObj: Record<string, unknown> = {
         name: error.name,
         message: error.message,
         stack: error.stack,
       };
-      
+
       const customProps = Object.getOwnPropertyNames(error).reduce((acc, key) => {
         if (key !== 'name' && key !== 'message' && key !== 'stack') {
           acc[key] = (error as Record<string, unknown>)[key];
         }
         return acc;
       }, {} as Record<string, unknown>);
-      
+
       return JSON.stringify({ ...errObj, ...customProps }, null, 2);
     }
 
@@ -107,7 +107,7 @@ async function retryWithBackoff<T>(
   factor: number = 2
 ): Promise<T> {
   let currentDelay = initialDelay;
-  
+
   for (let attempt = 1; attempt <= retries + 1; attempt++) {
     try {
       return await operation();
@@ -129,22 +129,22 @@ async function retryWithBackoff<T>(
       else if (error.error?.code) status = Number(error.error.code);
 
       // 3. 判斷特徵 (包含 Google 特有的錯誤碼與字串)
-      const isRateLimit = 
-          status === 429 ||
-          errorStr.includes("429") || 
-          errorStr.includes("RESOURCE_EXHAUSTED") || 
-          errorStr.includes("quota") || 
-          errorStr.includes("Too Many Requests");
-          
-      const isServerBusy = 
-          status === 503 ||
-          errorStr.includes("503") || 
-          errorStr.includes("Overloaded");
-      
-      const isFetchError = 
-          errorStr.includes("fetch") || 
-          errorStr.includes("network") || 
-          errorStr.includes("Failed to fetch");
+      const isRateLimit =
+        status === 429 ||
+        errorStr.includes("429") ||
+        errorStr.includes("RESOURCE_EXHAUSTED") ||
+        errorStr.includes("quota") ||
+        errorStr.includes("Too Many Requests");
+
+      const isServerBusy =
+        status === 503 ||
+        errorStr.includes("503") ||
+        errorStr.includes("Overloaded");
+
+      const isFetchError =
+        errorStr.includes("fetch") ||
+        errorStr.includes("network") ||
+        errorStr.includes("Failed to fetch");
 
       if (isRateLimit || isServerBusy || isFetchError) {
         console.warn(`[Gemini Retry] Attempt ${attempt}/${retries} failed (Status: ${status}). Retrying in ${currentDelay}ms...`);
@@ -157,7 +157,7 @@ async function retryWithBackoff<T>(
       }
     }
   }
-  
+
   throw new Error("Unexpected retry loop exit");
 }
 
@@ -166,14 +166,14 @@ async function retryWithBackoff<T>(
 // --- API Calls ---
 
 export const analyzeProductImage = async (
-    file: File, 
-    productName: string, 
-    brandContext: string
+  file: File,
+  productName: string,
+  brandContext: string
 ): Promise<DirectorOutput> => {
   try {
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
-    
+
     const imagePart = await fileToGenerativePart(file);
 
     const promptText = `
@@ -184,16 +184,16 @@ export const analyzeProductImage = async (
     `;
 
     const response = await retryWithBackoff(async () => {
-        return await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: {
-                parts: [imagePart, { text: promptText }],
-            },
-            config: {
-                systemInstruction: DIRECTOR_SYSTEM_PROMPT,
-                responseMimeType: "application/json",
-            },
-        });
+      return await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: {
+          parts: [imagePart, { text: promptText }],
+        },
+        config: {
+          systemInstruction: DIRECTOR_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+        },
+      });
     }, 3, 2000); // Flash 模型重試 3 次
 
     if (!response.text) {
@@ -207,20 +207,20 @@ export const analyzeProductImage = async (
     try {
       const cleaned = cleanJson(response.text);
       const parsed = JSON.parse(cleaned);
-      
+
       // 記錄原始回應以便除錯
       console.log('AI 回應原始資料：', JSON.stringify(parsed, null, 2));
-      
+
       // 使用 Zod 驗證回應格式
       return validateDirectorOutput(parsed);
     } catch (e) {
       console.error("Failed to parse or validate JSON", response.text);
       console.error("Error details:", e);
-      
+
       if (e instanceof AppError) {
         throw e;
       }
-      
+
       // 提供更詳細的錯誤訊息（開發用）
       const errorMessage = e instanceof Error ? e.message : String(e);
       throw new AppError({
@@ -241,24 +241,24 @@ export const analyzeProductImage = async (
 };
 
 export const generateContentPlan = async (
-    route: MarketingRoute,
-    analysis: ProductAnalysis,
-    referenceCopy: string,
-    brandContext?: string
+  route: MarketingRoute,
+  analysis: ProductAnalysis,
+  referenceCopy: string,
+  brandContext?: string
 ): Promise<ContentPlan> => {
-    try {
-      const apiKey = getApiKey();
-      const ai = new GoogleGenAI({ apiKey });
+  try {
+    const apiKey = getApiKey();
+    const ai = new GoogleGenAI({ apiKey });
 
-      // 分析品牌資訊中的英文元素
-      const englishElements = brandContext ? extractEnglishElements(brandContext) : null;
-      const languageNote = isChineseMode() 
-        ? (englishElements && (englishElements.hasEnglishSlogan || englishElements.hasEnglishBrandName)
-            ? `注意：品牌資訊中包含英文元素（Slogan: ${englishElements.englishSlogans.join(', ') || '無'}，品牌名稱: ${englishElements.englishBrandNames.join(', ') || '無'}）。在生成文案時，可以保留這些英文元素，但其他所有文字都必須使用繁體中文。`
-            : `注意：所有行銷文案都必須使用繁體中文。`)
-        : '';
+    // 分析品牌資訊中的英文元素
+    const englishElements = brandContext ? extractEnglishElements(brandContext) : null;
+    const languageNote = isChineseMode()
+      ? (englishElements && (englishElements.hasEnglishSlogan || englishElements.hasEnglishBrandName)
+        ? `注意：品牌資訊中包含英文元素（Slogan: ${englishElements.englishSlogans.join(', ') || '無'}，品牌名稱: ${englishElements.englishBrandNames.join(', ') || '無'}）。在生成文案時，可以保留這些英文元素，但其他所有文字都必須使用繁體中文。`
+        : `注意：所有行銷文案都必須使用繁體中文。`)
+      : '';
 
-      const promptText = `
+    const promptText = `
         選定策略路線: ${route.route_name}
         主標題: ${route.headline_zh}
         風格: ${route.style_brief_zh}
@@ -273,66 +273,66 @@ export const generateContentPlan = async (
         請生成 8 張圖的完整內容企劃 (JSON)。
       `;
 
-      const response = await retryWithBackoff(async () => {
-          return await ai.models.generateContent({
-              model: "gemini-2.5-flash",
-              contents: { parts: [{ text: promptText }] },
-              config: {
-                  systemInstruction: CONTENT_PLANNER_SYSTEM_PROMPT,
-                  responseMimeType: "application/json",
-                  thinkingConfig: { thinkingBudget: 1024 } 
-              }
-          });
-      }, 3, 2000);
-
-      if (!response.text) {
-        throw new AppError({
-          type: ErrorType.API,
-          message: "Gemini Planning failed",
-          userMessage: "內容企劃生成失敗，請稍候再試。",
-        });
-      }
-
-      try {
-        const cleaned = cleanJson(response.text);
-        const parsed = JSON.parse(cleaned);
-        
-        // 記錄原始回應以便除錯
-        console.log('內容企劃 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
-        
-        // 使用 Zod 驗證回應格式
-        return validateContentPlan(parsed);
-      } catch (e) {
-        console.error("Failed to parse or validate ContentPlan JSON", response.text);
-        console.error("Error details:", e);
-        
-        if (e instanceof AppError) {
-          throw e;
+    const response = await retryWithBackoff(async () => {
+      return await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: { parts: [{ text: promptText }] },
+        config: {
+          systemInstruction: CONTENT_PLANNER_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 1024 }
         }
-        
-        // 提供更詳細的錯誤訊息（開發用）
-        const errorMessage = e instanceof Error ? e.message : String(e);
-        throw new AppError({
-          type: ErrorType.VALIDATION,
-          message: `企劃生成格式錯誤: ${errorMessage}`,
-          userMessage: "內容企劃格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
-          originalError: e,
-        });
-      }
-    } catch (error) {
-      // 如果已經是 AppError，直接拋出
-      if (error instanceof AppError) {
-        throw error;
-      }
-      // 否則使用錯誤處理器轉換
-      handleGeminiError(error);
+      });
+    }, 3, 2000);
+
+    if (!response.text) {
+      throw new AppError({
+        type: ErrorType.API,
+        message: "Gemini Planning failed",
+        userMessage: "內容企劃生成失敗，請稍候再試。",
+      });
     }
+
+    try {
+      const cleaned = cleanJson(response.text);
+      const parsed = JSON.parse(cleaned);
+
+      // 記錄原始回應以便除錯
+      console.log('內容企劃 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
+
+      // 使用 Zod 驗證回應格式
+      return validateContentPlan(parsed);
+    } catch (e) {
+      console.error("Failed to parse or validate ContentPlan JSON", response.text);
+      console.error("Error details:", e);
+
+      if (e instanceof AppError) {
+        throw e;
+      }
+
+      // 提供更詳細的錯誤訊息（開發用）
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      throw new AppError({
+        type: ErrorType.VALIDATION,
+        message: `企劃生成格式錯誤: ${errorMessage}`,
+        userMessage: "內容企劃格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
+        originalError: e,
+      });
+    }
+  } catch (error) {
+    // 如果已經是 AppError，直接拋出
+    if (error instanceof AppError) {
+      throw error;
+    }
+    // 否則使用錯誤處理器轉換
+    handleGeminiError(error);
+  }
 };
 
 export const generateMarketingImage = async (
-    prompt: string, 
-    referenceImageBase64?: string,
-    aspectRatio: '1:1' | '9:16' | '3:4' | '4:3' | '16:9' = '3:4'
+  prompt: string,
+  referenceImageBase64?: string,
+  aspectRatio: '1:1' | '9:16' | '3:4' | '4:3' | '16:9' = '3:4'
 ): Promise<string> => {
   try {
     const apiKey = getApiKey();
@@ -356,12 +356,12 @@ export const generateMarketingImage = async (
         enhancedPrompt = `IMPORTANT: You are provided with a reference image. Please use it as a style guide for composition, color palette, lighting, and overall visual aesthetic. Match the reference image's style closely while following the prompt requirements.\n\n${enhancedPrompt}`;
       }
     }
-    
+
     // 在中文模式下，強制確保所有文字都是繁體中文
     if (isChineseMode()) {
       // 檢查 prompt 中是否有 "Render text" 或 "Display text" 指示
       const hasTextRenderInstruction = /render\s+text|display\s+text|text\s+like|text\s+['"]/i.test(enhancedPrompt);
-      
+
       // 如果沒有明確的文字渲染指示，加入強制使用繁體中文的指示
       if (!hasTextRenderInstruction) {
         enhancedPrompt = `${enhancedPrompt}\n\nIMPORTANT: If this image contains any text, marketing copy, testimonials, or call-to-action buttons, ALL text must be rendered in Traditional Chinese characters. Do NOT use English marketing text. Only brand names (like "Horizon") may appear in English if they are part of the product name.`;
@@ -378,15 +378,15 @@ export const generateMarketingImage = async (
     if (referenceImageBase64) {
       const match = referenceImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
       if (match) {
-          parts.push({
-              inlineData: {
-                  data: match[2],
-                  mimeType: match[1]
-              }
-          });
+        parts.push({
+          inlineData: {
+            data: match[2],
+            mimeType: match[1]
+          }
+        });
       }
     }
-    
+
     // 添加文字提示詞
     parts.push({ text: enhancedPrompt });
 
@@ -394,17 +394,17 @@ export const generateMarketingImage = async (
     // 重試策略強化：Pro Image 模型較容易觸發限流，增加重試次數至 5 次
     // 延遲策略：5s -> 10s -> 20s -> 40s -> 80s (總共可覆蓋超過 2 分鐘的等待)
     const response = await retryWithBackoff(async () => {
-        return await ai.models.generateContent({
-            model: "gemini-3-pro-image-preview",
-            contents: { parts: parts },
-            config: {
-                imageConfig: {
-                    aspectRatio: aspectRatio,
-                    imageSize: "1K" 
-                }
-            },
-        });
-    }, 5, 5000, 2); 
+      return await ai.models.generateContent({
+        model: "gemini-3-pro-image-preview",
+        contents: { parts: parts },
+        config: {
+          imageConfig: {
+            aspectRatio: aspectRatio,
+            imageSize: "1K"
+          }
+        },
+      });
+    }, 5, 5000, 2);
 
     const candidates = response.candidates;
     if (candidates && candidates.length > 0) {
@@ -415,7 +415,7 @@ export const generateMarketingImage = async (
         }
       }
     }
-    
+
     throw new AppError({
       type: ErrorType.API,
       message: "未生成圖片 (No image data in response)",
@@ -441,7 +441,7 @@ export const generateFullReport = (
   const route = routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString();
 
-  let report = `AI PM Designer PRO v4.0 - Product Marketing Strategy Report\n`;
+  let report = `AI PM Designer PRO v1.0 - Product Marketing Strategy Report\n`;
   report += `Date: ${date}\n`;
   report += `=================================================\n\n`;
 
@@ -503,7 +503,7 @@ export const generateMarketAnalysis = async (
     `;
 
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: promptText }];
-    
+
     // 添加產品圖片
     const match = productImageBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
     if (match) {
@@ -538,18 +538,18 @@ export const generateMarketAnalysis = async (
     try {
       const cleaned = cleanJson(response.text);
       const parsed = JSON.parse(cleaned);
-      
+
       console.log('市場分析 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
-      
+
       return validateMarketAnalysis(parsed);
     } catch (e) {
       console.error("Failed to parse or validate MarketAnalysis JSON", response.text);
       console.error("Error details:", e);
-      
+
       if (e instanceof AppError) {
         throw e;
       }
-      
+
       const errorMessage = e instanceof Error ? e.message : String(e);
       throw new AppError({
         type: ErrorType.VALIDATION,
@@ -628,7 +628,7 @@ export const generateContentStrategy = async (
 
     try {
       let cleaned = cleanJson(response.text);
-      
+
       // 嘗試修復常見的 JSON 格式問題
       // 1. 修復提示詞陣列中的多行字串問題
       // 使用更精確的正則表達式來匹配陣列內容
@@ -639,23 +639,23 @@ export const generateContentStrategy = async (
         let inString = false;
         let escapeNext = false;
         let depth = 0;
-        
+
         for (let i = 0; i < content.length; i++) {
           const char = content[i];
           const nextChar = content[i + 1];
-          
+
           if (escapeNext) {
             currentString += char;
             escapeNext = false;
             continue;
           }
-          
+
           if (char === '\\') {
             escapeNext = true;
             currentString += char;
             continue;
           }
-          
+
           if (char === '"' && !escapeNext) {
             if (inString) {
               // 結束字串
@@ -668,7 +668,7 @@ export const generateContentStrategy = async (
             }
             continue;
           }
-          
+
           if (inString) {
             currentString += char;
           } else if (char === '[') {
@@ -677,7 +677,7 @@ export const generateContentStrategy = async (
             depth--;
           }
         }
-        
+
         // 重新構建陣列，確保每個字串都正確轉義
         const fixedPrompts = prompts.map(p => {
           // 轉義特殊字元
@@ -689,32 +689,32 @@ export const generateContentStrategy = async (
             .replace(/\t/g, '\\t');
           return `"${escaped}"`;
         }).join(',');
-        
+
         return `${start}${fixedPrompts}${end}`;
       });
-      
+
       // 同樣處理 gammaPrompts
       cleaned = cleaned.replace(/("gammaPrompts"\s*:\s*\[)([\s\S]*?)(\])/g, (match, start, content, end) => {
         const prompts: string[] = [];
         let currentString = '';
         let inString = false;
         let escapeNext = false;
-        
+
         for (let i = 0; i < content.length; i++) {
           const char = content[i];
-          
+
           if (escapeNext) {
             currentString += char;
             escapeNext = false;
             continue;
           }
-          
+
           if (char === '\\') {
             escapeNext = true;
             currentString += char;
             continue;
           }
-          
+
           if (char === '"' && !escapeNext) {
             if (inString) {
               prompts.push(currentString);
@@ -725,12 +725,12 @@ export const generateContentStrategy = async (
             }
             continue;
           }
-          
+
           if (inString) {
             currentString += char;
           }
         }
-        
+
         const fixedPrompts = prompts.map(p => {
           const escaped = p
             .replace(/\\/g, '\\\\')
@@ -740,30 +740,30 @@ export const generateContentStrategy = async (
             .replace(/\t/g, '\\t');
           return `"${escaped}"`;
         }).join(',');
-        
+
         return `${start}${fixedPrompts}${end}`;
       });
-      
+
       const parsed = JSON.parse(cleaned);
-      
+
       console.log('內容策略 AI 回應原始資料：', JSON.stringify(parsed, null, 2));
-      
+
       return validateContentStrategy(parsed);
     } catch (e) {
       console.error("Failed to parse or validate ContentStrategy JSON", response.text);
       console.error("Error details:", e);
-      
+
       if (e instanceof AppError) {
         throw e;
       }
-      
+
       // 嘗試更簡單的修復策略：直接使用 JSON5 或手動修復
       try {
         let cleaned = response.text.trim();
         // 移除 markdown 代碼塊
         cleaned = cleaned.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
         cleaned = cleaned.replace(/^```\s*/i, '').replace(/\s*```$/i, '');
-        
+
         // 嘗試使用更寬鬆的解析方式
         // 如果解析失敗，嘗試提取並重新構建 JSON
         const parsed = JSON.parse(cleaned);
@@ -772,7 +772,7 @@ export const generateContentStrategy = async (
       } catch (repairError) {
         console.error("修復策略也失敗:", repairError);
       }
-      
+
       const errorMessage = e instanceof Error ? e.message : String(e);
       throw new AppError({
         type: ErrorType.VALIDATION,

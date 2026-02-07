@@ -29,7 +29,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
         <div className="p-8">
           <div className="flex items-center gap-3 mb-2">
              <span className="px-2 py-0.5 bg-purple-600 rounded text-xs font-bold text-white">PRO</span>
-             <h2 className="text-3xl font-bold serif text-white">功能導覽 v4.0</h2>
+             <h2 className="text-3xl font-bold serif text-white">功能導覽 v1.0</h2>
           </div>
           <p className="text-gray-400 text-sm mb-8">從單圖分析到全套社群行銷素材的完整生產線。</p>
 
@@ -88,7 +88,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-lg border border-blue-600/30">5</div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Phase 3: 產品市場分析 (v4.0 新增)</h3>
+                <h3 className="text-lg font-bold text-white mb-1">Phase 3: 產品市場分析</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   基於 Phase 1 選定的視覺策略，生成完整的市場分析報告：產品核心價值、目標市場定位、競爭對手分析（3 個）、買家人物誌（3 個）。完成後可下載市場分析報告。
                 </p>
@@ -99,7 +99,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-600/20 text-green-400 flex items-center justify-center font-bold text-lg border border-green-600/30">6</div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Phase 4: 內容與 SEO 策略 (v4.0 新增)</h3>
+                <h3 className="text-lg font-bold text-white mb-1">Phase 4: 內容與 SEO 策略</h3>
                 <p className="text-gray-400 text-sm leading-relaxed mb-2">
                   基於 Phase 3 的分析結果，生成專業的內容策略：
                 </p>
@@ -120,7 +120,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="px-6 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors"
             >
-              開始體驗 v4.0
+              開始體驗 v1.0
             </button>
           </div>
         </div>
