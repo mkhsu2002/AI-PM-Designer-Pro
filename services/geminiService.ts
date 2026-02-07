@@ -338,41 +338,30 @@ export const generateMarketingImage = async (
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
 
-    // 優化提示詞：如果有參考圖片，提取顏色並加入提示詞，並強制產品顏色與 Logo/文字依參考圖
+    // 有參考圖時：簡短引導模型參考圖片合成，避免過多限制
     let enhancedPrompt = prompt;
     if (referenceImageBase64) {
-      const referenceInstructions = [
-        'CRITICAL - Reference image rules (you MUST follow):',
-        '1. PRODUCT COLORS: The product (e.g. body, handle, strap) must use ONLY the colors visible on the product in the reference image. Do NOT use red, crimson, or scarlet for the product unless the reference image clearly shows the product in red.',
-        '2. LOGO & BRAND: Any logo, brand mark, label, or text ON the product (e.g. on strap, tag, body) must be replicated EXACTLY as in the reference image—same design, same wording, same placement. Do not invent or change logos or text.',
-        '3. NO INVENTED COLORS: Do not add colors to the product that are not present in the reference image. If the reference product is silver, gray, black, or white, keep it that way—do not render it red.',
-      ].join('\n');
-
+      const referenceLead = 'Use the reference image for product appearance, colors, and any logo or text on the product. Compose the scene freely from the prompt below.\n\n';
       try {
         const colors = await extractImageColors(referenceImageBase64);
         const colorFragment = colorToPromptFragment(colors);
         if (colorFragment) {
-          enhancedPrompt = `${referenceInstructions}\n\n${colorFragment}\n\n${prompt}`;
+          enhancedPrompt = `${referenceLead}${colorFragment}\n\n${prompt}`;
         } else {
-          enhancedPrompt = `${referenceInstructions}\n\n${prompt}`;
+          enhancedPrompt = `${referenceLead}${prompt}`;
         }
       } catch (colorError) {
         console.warn('顏色提取失敗，使用原始提示詞:', colorError);
-        enhancedPrompt = `${referenceInstructions}\n\n${prompt}`;
+        enhancedPrompt = `${referenceLead}${prompt}`;
       }
     }
 
-    // 在中文模式下，強制確保所有文字都是繁體中文
     if (isChineseMode()) {
-      // 檢查 prompt 中是否有 "Render text" 或 "Display text" 指示
       const hasTextRenderInstruction = /render\s+text|display\s+text|text\s+like|text\s+['"]/i.test(enhancedPrompt);
-
-      // 如果沒有明確的文字渲染指示，加入強制使用繁體中文的指示
       if (!hasTextRenderInstruction) {
-        enhancedPrompt = `${enhancedPrompt}\n\nIMPORTANT: If this image contains any text, marketing copy, testimonials, or call-to-action buttons, ALL text must be rendered in Traditional Chinese characters. Do NOT use English marketing text. Only brand names (like "Horizon") may appear in English if they are part of the product name.`;
+        enhancedPrompt = `${enhancedPrompt}\n\nRendered text: Traditional Chinese only (brand names in English if applicable).`;
       } else {
-        // 即使有文字渲染指示，也加強繁體中文要求
-        enhancedPrompt = `${enhancedPrompt}\n\nCRITICAL: All rendered text must be in Traditional Chinese characters. Do NOT generate English marketing copy, testimonials, or button text.`;
+        enhancedPrompt = `${enhancedPrompt}\n\nAll rendered text in Traditional Chinese.`;
       }
     }
 
@@ -446,7 +435,7 @@ export const generateFullReport = (
   const route = routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString();
 
-  let report = `AI PM Designer PRO v1.01 - Product Marketing Strategy Report\n`;
+  let report = `AI PM Designer PRO v1.02 - Product Marketing Strategy Report\n`;
   report += `Date: ${date}\n`;
   report += `=================================================\n\n`;
 

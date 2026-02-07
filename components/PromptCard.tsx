@@ -142,6 +142,16 @@ export const PromptCard: React.FC<PromptCardProps> = ({ data, index }) => {
           </div>
         </div>
 
+        {/* 生成提示詞檢視（執行前可檢視） */}
+        <div className="bg-[#1e1e24] rounded-lg p-2 border border-white/5">
+          <label className="block text-[10px] font-semibold text-gray-400 mb-1">生成提示詞</label>
+          <div className="max-h-24 overflow-y-auto rounded bg-[#0a0a0d] border border-white/5 p-2">
+            <pre className="text-[10px] text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">
+              {promptText}
+            </pre>
+          </div>
+        </div>
+
         {/* Aspect Ratio Selection */}
         <div className="bg-[#1e1e24] rounded p-2 border border-white/5">
           <label className="block text-[10px] text-gray-400 mb-1">圖片比例</label>
@@ -209,7 +219,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ data, index }) => {
           </div>
         </div>
 
-        {/* Generate Button */}
+        {/* Generate Button（提示詞已在上方顯示，執行前可檢視） */}
         <button
           onClick={handleGenerate}
           disabled={isLoading}
