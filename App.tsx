@@ -96,7 +96,7 @@ const App: React.FC = () => {
         return;
       }
 
-      if (!FILE_LIMITS.ACCEPTED_TYPES.includes(file.type)) {
+      if (!(FILE_LIMITS.ACCEPTED_TYPES as readonly string[]).includes(file.type)) {
         setErrorMsg(`不支援的檔案類型。請上傳 JPG、PNG 或 WebP 格式的圖片。`);
         setErrorType(ErrorType.VALIDATION);
         return;
@@ -477,7 +477,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="w-full py-6 text-center border-t border-white/5 text-xs text-gray-600">
-        Open sourced by <a href="https://flypigai.icareu.tw/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors font-bold">FlyPig AI</a>
+        © 2026 <a href="https://flypigai.icareu.tw/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors font-bold">FlyPig AI - 艾可開發股份有限公司</a>. All rights reserved.
       </footer>
     </div>
   );

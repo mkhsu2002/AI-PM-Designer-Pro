@@ -284,6 +284,6 @@ export default defineConfig({
 
 **[MIT License](./LICENSE)**
 
-Open sourced by [FlyPig AI](https://flypigai.icareu.tw/)
+Open sourced by [FlyPig AI - 艾可開發股份有限公司](https://flypigai.icareu.tw/)
 
-Copyright (c) 2025 AI Product Marketing Designer PRO
+Copyright (c) 2026 FlyPig AI - 艾可開發股份有限公司. All rights reserved.
