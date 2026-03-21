@@ -42,6 +42,20 @@ export interface ContentPlan {
   items: ContentItem[];
 }
 
+// --- Phase 5: Landing Page Image Types ---
+
+export interface LandingPageImagePrompt {
+  id: string;           // e.g. "lp_img_1_hero"
+  purpose: string;      // 用途說明（中文），e.g. "Hero 主視覺"
+  prompt_en: string;    // 英文生成提示詞
+  summary_zh: string;   // 繁中摘要
+  suggestedRatio: '16:9' | '1:1' | '3:4' | '4:3';  // 建議比例
+}
+
+export interface LandingPageImages {
+  imagePrompts: LandingPageImagePrompt[];
+}
+
 export enum AppState {
   IDLE,
   ANALYZING,
@@ -52,6 +66,8 @@ export enum AppState {
   MARKET_READY, // Phase 3 Done (Market Analysis Ready)
   ANALYZING_CONTENT, // Phase 4 Analyzing (Content Strategy)
   CONTENT_READY, // Phase 4 Done (Content Strategy Ready)
+  GENERATING_LP_IMAGES, // Phase 5 正在生成 Landing Page 圖片提示詞
+  LP_IMAGES_READY, // Phase 5 Landing Page 圖片提示詞已就緒
   ERROR
 }
 

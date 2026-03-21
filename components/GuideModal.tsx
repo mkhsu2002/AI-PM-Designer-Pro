@@ -29,7 +29,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
         <div className="p-8">
           <div className="flex items-center gap-3 mb-2">
              <span className="px-2 py-0.5 bg-purple-600 rounded text-xs font-bold text-white">PRO</span>
-             <h2 className="text-3xl font-bold serif text-white">功能導覽 v1.2</h2>
+             <h2 className="text-3xl font-bold serif text-white">功能導覽 v1.3</h2>
           </div>
           <p className="text-gray-400 text-sm mb-8">從單圖分析到全套社群行銷素材的完整生產線。</p>
 
@@ -113,6 +113,23 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 </ul>
               </div>
             </div>
+
+            {/* Step 7 */}
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-600/20 text-orange-400 flex items-center justify-center font-bold text-lg border border-orange-600/30">7</div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1">Phase 5: Landing Page 配圖</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-2">
+                  基於 Phase 4 的 SEO Landing Page 提示詞，自動規劃 6 張 Landing Page 配圖：
+                </p>
+                <ul className="list-disc list-inside text-xs text-gray-500 space-y-1 ml-1">
+                    <li><strong>6 張配圖提示詞</strong>：Hero 主視覺、產品特色、使用情境、技術細節、信任背書、CTA</li>
+                    <li><strong>檢閱與編輯</strong>：AI 生成提示詞後可自由編輯</li>
+                    <li><strong>參考圖上傳</strong>：每張圖支援單獨上傳參考圖片</li>
+                    <li><strong>手動生成</strong>：確認後逐張生成高品質圖片</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div className="mt-10 pt-6 border-t border-white/10 flex justify-end">
@@ -120,7 +137,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="px-6 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors"
             >
-              開始體驗 v1.2
+              開始體驗 v1.3
             </button>
           </div>
         </div>

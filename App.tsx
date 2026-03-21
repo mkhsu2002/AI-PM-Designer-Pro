@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { analyzeProductImage, generateContentPlan, generateMarketAnalysis, generateContentStrategy } from './services/geminiService';
-import { DirectorOutput, AppState, ContentPlan, ContentItem, MarketAnalysis, ContentStrategy } from './types';
+import { analyzeProductImage, generateContentPlan, generateMarketAnalysis, generateContentStrategy, generateLandingPageImagePrompts } from './services/geminiService';
+import { DirectorOutput, AppState, ContentPlan, ContentItem, MarketAnalysis, ContentStrategy, LandingPageImagePrompt } from './types';
 import { GuideModal } from './components/GuideModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { ProductCard } from './components/ProductCard';
@@ -11,12 +11,13 @@ import { InputForm } from './components/InputForm';
 import { Phase2Section } from './components/Phase2Section';
 import { Phase3Section } from './components/Phase3Section';
 import { Phase4Section } from './components/Phase4Section';
+import { Phase5Section } from './components/Phase5Section';
 import { AppError, ErrorType } from './utils/errorHandler';
 import { validateProductName, validateBrandContext, validateRefCopy } from './utils/validators';
 import { LanguageMode, getLanguageMode, setLanguageMode, isChineseMode } from './utils/languageMode';
 import { generateImageDescriptionMap } from './utils/imageMapping';
 import { generateFileNameMap } from './utils/imageNaming';
-import { generatePhase1Report, generatePhase3Report, generatePhase4Report } from './utils/reportGenerator';
+import { generatePhase1Report, generatePhase3Report, generatePhase4Report, generatePhase5Report } from './utils/reportGenerator';
 import { generateFullReport } from './services/geminiService';
 import { downloadTextFile } from './utils/downloadHelper';
 import { FILE_LIMITS } from './utils/constants';
@@ -45,6 +46,9 @@ const App: React.FC = () => {
   const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null);
   const [marketRegion, setMarketRegion] = useState<string>("台灣");
   const [contentStrategy, setContentStrategy] = useState<ContentStrategy | null>(null);
+
+  // --- Phase 5 Data ---
+  const [landingPageImagePrompts, setLandingPageImagePrompts] = useState<LandingPageImagePrompt[]>([]);
 
   // --- UI State ---
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -230,6 +234,24 @@ const App: React.FC = () => {
     }
   };
 
+  // --- Phase 5: Landing Page Image Prompts ---
+  const handleGenerateLPImagePrompts = async () => {
+    if (!contentStrategy || !analysisResult) return;
+
+    setErrorMsg("");
+    setErrorType(null);
+    setAppState(AppState.GENERATING_LP_IMAGES);
+
+    try {
+      const selectedRoute = analysisResult.marketing_routes[activeRouteIndex];
+      const result = await generateLandingPageImagePrompts(contentStrategy, productName, selectedRoute);
+      setLandingPageImagePrompts(result.imagePrompts);
+      setAppState(AppState.LP_IMAGES_READY);
+    } catch (e) {
+      handleError(e, "Landing Page 配圖提示詞生成失敗，請稍候再試。", AppState.CONTENT_READY);
+    }
+  };
+
   // --- Language ---
   const handleLanguageModeChange = (mode: LanguageMode) => {
     if (mode === LanguageMode.EN) return; // English mode is WIP
@@ -265,6 +287,12 @@ const App: React.FC = () => {
     downloadTextFile(textReport, `Phase4_內容策略報告_${productName.replace(/\s+/g, '_')}.txt`);
   };
 
+  const handleDownloadPhase5Report = () => {
+    if (landingPageImagePrompts.length === 0) return;
+    const textReport = generatePhase5Report(landingPageImagePrompts, productName);
+    downloadTextFile(textReport, `Phase5_LandingPage配圖提示詞_${productName.replace(/\s+/g, '_')}.txt`);
+  };
+
   // --- Route Selection ---
   const handleRouteChange = (idx: number) => {
     setActiveRouteIndex(idx);
@@ -277,14 +305,20 @@ const App: React.FC = () => {
   const isPhaseResultsVisible = appState === AppState.RESULTS || appState === AppState.PLANNING ||
     appState === AppState.SUITE_READY || appState === AppState.ANALYZING_MARKET ||
     appState === AppState.MARKET_READY || appState === AppState.ANALYZING_CONTENT ||
-    appState === AppState.CONTENT_READY;
+    appState === AppState.CONTENT_READY || appState === AppState.GENERATING_LP_IMAGES ||
+    appState === AppState.LP_IMAGES_READY;
 
   const isPhase3Visible = (appState === AppState.SUITE_READY || appState === AppState.ANALYZING_MARKET ||
     appState === AppState.MARKET_READY || appState === AppState.ANALYZING_CONTENT ||
-    appState === AppState.CONTENT_READY) && contentPlan;
+    appState === AppState.CONTENT_READY || appState === AppState.GENERATING_LP_IMAGES ||
+    appState === AppState.LP_IMAGES_READY) && contentPlan;
 
   const isPhase4Visible = (appState === AppState.MARKET_READY || appState === AppState.ANALYZING_CONTENT ||
-    appState === AppState.CONTENT_READY) && marketAnalysis;
+    appState === AppState.CONTENT_READY || appState === AppState.GENERATING_LP_IMAGES ||
+    appState === AppState.LP_IMAGES_READY) && marketAnalysis;
+
+  const isPhase5Visible = (appState === AppState.CONTENT_READY || appState === AppState.GENERATING_LP_IMAGES ||
+    appState === AppState.LP_IMAGES_READY) && contentStrategy;
 
   // --- Render Phase 1 Results ---
   const renderPhase1Results = () => {
@@ -379,6 +413,19 @@ const App: React.FC = () => {
             onDownloadPhase4Report={handleDownloadPhase4Report}
           />
         )}
+
+        {/* Phase 5 */}
+        {isPhase5Visible && (
+          <Phase5Section
+            appState={appState}
+            landingPageImagePrompts={landingPageImagePrompts}
+            productName={productName}
+            defaultRefImage={imagePreview || undefined}
+            onGenerateLPImagePrompts={handleGenerateLPImagePrompts}
+            onPromptsUpdate={setLandingPageImagePrompts}
+            onDownloadPhase5Report={handleDownloadPhase5Report}
+          />
+        )}
       </div>
     );
   };
@@ -400,7 +447,7 @@ const App: React.FC = () => {
             </h1>
           </div>
           <div className="flex gap-4 items-center">
-            <button onClick={() => setIsGuideOpen(true)} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">功能導覽 v1.2</button>
+            <button onClick={() => setIsGuideOpen(true)} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">功能導覽 v1.3</button>
 
             {/* Language Mode Switcher */}
             <div className="flex items-center gap-2 bg-[#1a1a1f] rounded-lg p-1 border border-white/10">
@@ -447,7 +494,7 @@ const App: React.FC = () => {
         {appState === AppState.IDLE && (
           <div className="flex-1 flex flex-col items-center mt-8 text-center">
             <div className="inline-block px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-widest mb-6">
-              v1.2
+              v1.3
             </div>
             <h2 className="text-4xl md:text-6xl font-bold text-white serif mb-4 leading-tight">
               打造完整的<br />品牌視覺資產

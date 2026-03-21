@@ -3,10 +3,10 @@
  * 各 Phase 的 API 呼叫邏輯
  */
 
-import { DIRECTOR_SYSTEM_PROMPT, CONTENT_PLANNER_SYSTEM_PROMPT, MARKET_ANALYST_SYSTEM_PROMPT, CONTENT_STRATEGIST_SYSTEM_PROMPT } from "../prompts";
-import { DirectorOutput, ContentPlan, MarketingRoute, ProductAnalysis, ContentItem, MarketAnalysis, ContentStrategy } from "../types";
+import { DIRECTOR_SYSTEM_PROMPT, CONTENT_PLANNER_SYSTEM_PROMPT, MARKET_ANALYST_SYSTEM_PROMPT, CONTENT_STRATEGIST_SYSTEM_PROMPT, LANDING_PAGE_IMAGE_SYSTEM_PROMPT } from "../prompts";
+import { DirectorOutput, ContentPlan, MarketingRoute, ProductAnalysis, ContentItem, MarketAnalysis, ContentStrategy, LandingPageImages } from "../types";
 import { AppError, ErrorType } from "../utils/errorHandler";
-import { validateDirectorOutput, validateContentPlan, validateMarketAnalysis, validateContentStrategy } from "../utils/validators";
+import { validateDirectorOutput, validateContentPlan, validateMarketAnalysis, validateContentStrategy, validateLandingPageImages } from "../utils/validators";
 import { extractImageColors, colorToPromptFragment } from "../utils/imageColorExtractor";
 import { isChineseMode, extractEnglishElements } from "../utils/languageMode";
 import { API_CONFIG } from "../utils/constants";
@@ -218,7 +218,7 @@ export const generateFullReport = (
   const route = routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString();
 
-  let report = `AI PM Designer PRO v1.2 - Product Marketing Strategy Report\n`;
+  let report = `AI PM Designer PRO v1.3 - Product Marketing Strategy Report\n`;
   report += `Date: ${date}\n`;
   report += `=================================================\n\n`;
 
@@ -360,5 +360,58 @@ export const generateContentStrategy = async (
     }, API_CONFIG.MAX_RETRIES, API_CONFIG.INITIAL_DELAY);
 
     return parseAndValidate(response.text, validateContentStrategy, "內容策略", "內容策略");
+  });
+};
+
+// --- Phase 5: Landing Page Image Prompts ---
+
+export const generateLandingPageImagePrompts = async (
+  contentStrategy: ContentStrategy,
+  productName: string,
+  selectedRoute: MarketingRoute
+): Promise<LandingPageImages> => {
+  return safeApiCall(async () => {
+    const ai = createClient();
+
+    // 取第一個 AI Studio 提示詞作為主要參考
+    const primaryPrompt = contentStrategy.aiStudioPrompts[0] || '';
+    const allPromptsSummary = contentStrategy.aiStudioPrompts
+      .map((p, i) => `版本${i + 1}: ${p.substring(0, 200)}...`)
+      .join('\n\n');
+
+    const promptText = `
+      產品名稱: ${productName}
+      
+      選定的行銷策略路線:
+      - 路線名稱: ${selectedRoute.route_name}
+      - 主標題: ${selectedRoute.headline_zh}
+      - 副標題: ${selectedRoute.subhead_zh}
+      - 視覺風格: ${selectedRoute.style_brief_zh}
+      
+      SEO Landing Page 主要提示詞（AI Studio 版本）:
+      ${primaryPrompt}
+      
+      所有版本的 Landing Page 提示詞摘要:
+      ${allPromptsSummary}
+      
+      CTA 文案建議:
+      ${contentStrategy.ctaSuggestions.join(', ')}
+      
+      請根據以上 Landing Page 提示詞內容，規劃 6 張 Landing Page 配圖的生成提示詞 (JSON)。
+    `;
+
+    const response = await retryWithBackoff(async () => {
+      return await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: { parts: [{ text: promptText }] },
+        config: {
+          systemInstruction: LANDING_PAGE_IMAGE_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: API_CONFIG.THINKING_BUDGET }
+        }
+      });
+    }, API_CONFIG.MAX_RETRIES, API_CONFIG.INITIAL_DELAY);
+
+    return parseAndValidate(response.text, validateLandingPageImages, "Landing Page 圖片提示詞", "Landing Page 圖片提示詞");
   });
 };
