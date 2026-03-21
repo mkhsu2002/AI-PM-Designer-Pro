@@ -51,8 +51,8 @@ export const DIRECTOR_SYSTEM_PROMPT = `
 **第三階段：圖像生成提示詞設計**
 *   針對每個策略路線，產生 **3 個** 英文繪圖提示詞 (Gemini 3 Pro Image 用)。
 *   每個 Prompt 需附帶 **「繁體中文摘要」** (30-50 字)。
-*   **提示詞風格**：精準描述構圖、氛圍與文案渲染，跨度 100-150 字。請「簡要描述」產品在參考圖中的核心顏色與材質特徵（例如：曜石黑磨砂質感），以補強視覺生成穩定性。
-*   **內容要點**：產品名稱或核心特徵、畫面構圖與氛圍、若有標題/副標請寫出要渲染的繁體中文內容。
+*   **提示詞風格**：精準描述背景構圖、空間感、氛圍與光影，字數限制在 30-80 字。
+*   **【最嚴格警告：絕對禁止描述產品本身】**：生圖模型會自動把使用者的真實商品合併進去。你在這個提示詞內**只能描述背景(Background)、場景、空出的構圖位置、以及光影。** 絕對不准使用任何名詞去形容「商品的形狀、結構、圖案、材質或零件」，否則 AI 的注意力會被干擾，並自行「重新發明」一個變形走樣的假商品！
 *   **語言**：行銷文案用繁體中文；僅在品牌明確為英文時保留英文。
 
 **--- 差異化範例 (Few-shot) ---**
@@ -133,10 +133,11 @@ export const CONTENT_PLANNER_SYSTEM_PROMPT = `
 1.  **title_zh**: 圖片上的主要文案標題（5-20 字）。語言：繁體中文，品牌名可保留英文。
 2.  **copy_zh**: 輔助說明文案（30-50 字）。語言：繁體中文。
 3.  **visual_summary_zh**: 畫面構圖摘要（20-30 字）。
-4.  **visual_prompt_en**: 英文繪圖指令（80-150 字）。
+4.  **visual_prompt_en**: 英文繪圖指令（30-80 字）。
     *   比例標記："square, 1:1" / "vertical, 9:16" / "horizontal, 16:9"
-    *   文字渲染：用 "Render text '繁體中文內容'" 標記需渲染的文字
-    *   儘管會參考圖片，但請在提示詞中「簡要描述」產品的核心顏色與材質（例如：Emerald green metallic finish），以確保生成穩定性。
+    *   **【最嚴格警告：絕對禁止描述產品本身】**：生圖模型會自動把使用者的商品圖片疊加進去。你在這裡如果用了任何名詞去形容「商品外觀、形狀、圖案、材質、零件」，AI 就會試圖重新畫一個變形的假商品疊在畫面上！
+    *   **正確示範**: "A clean minimalist marble table top, soft morning sunlight casting gentle long shadows, blurred green plants in the background, empty center space." (完全不描寫商品)
+    *   **錯誤示範**: "A green luggage strap with hot air balloon patterns on a bright yellow background." (絕對禁止！)
 
 **--- 8 張圖必須保持視覺一致性 ---**
 統一色彩系統、字體風格、設計元素、品牌識別位置，延續階段一選定路線的視覺風格。
@@ -395,13 +396,12 @@ export const LANDING_PAGE_IMAGE_SYSTEM_PROMPT = `
 **--- 對於每一張圖，你需要提供 ---**
 1. **id**: 固定使用上表的 id
 2. **purpose**: 中文用途描述（5-15 字）
-3. **prompt_en**: 英文繪圖指令（80-150 字），需包含：
-   - 畫面構圖與氛圍描述
-   - 色彩方案（必須與 Landing Page 主題一致）
-   - 產品在圖中的位置與呈現方式
-   - 光影、材質、背景設定
-   - **嚴禁**在提示詞中描述品牌標誌 (Logo)、中英文品牌名稱或任何產品包裝上的具體文字（這會導致繪圖 AI 生成扭曲的假字）。請將重點完全放在場景、光影、材質與構圖。
-4. **summary_zh**: 繁中摘要（20-40 字）
+3. **prompt_en**: 英文繪圖指令（30-80 字），**這非常重要，請遵守以下嚴格規範**：
+   - **【最嚴格警告：絕對禁止描述產品本身】**：生圖模型會自動把使用者的真實商品合併進去。你在這裡如果用了任何名詞去形容「商品的形狀、結構、圖案、扣環、皮箱、材質、零件等」，AI 的注意力會被干擾，並自行「重新發明」一個變形走樣的假商品！
+   - **你只能描述：純粹的「背景場景 (Background)」、「構圖留白」、「光影 (Lighting)」、「氛圍 (Mood)」與「墊放商品的台面材質」。**
+   - 色彩方案需與 Landing Page 主題呼應。
+   - **正確示範 ✅**: "A clean minimalist marble table top, soft morning sunlight casting gentle long shadows from the left, blurred green plants in the distance, neutral cinematic lighting, high-end commercial aesthetic, empty center space." (完全不提及商品，只描述舞台)
+   - **錯誤示範 ❌**: "A green luggage strap with hot air balloon patterns resting on a vintage suitcase..." (絕對禁止！會導致實體商品變形與商標錯亂)
 5. **suggestedRatio**: 建議比例（從 "16:9", "1:1", "4:3", "3:4" 中選擇）
 
 **--- 視覺一致性要求 ---**
@@ -417,7 +417,7 @@ export const LANDING_PAGE_IMAGE_SYSTEM_PROMPT = `
     {
       "id": "lp_img_1_hero",
       "purpose": "Hero 主視覺",
-      "prompt_en": "英文繪圖提示詞（80-150 字）",
+      "prompt_en": "英文繪圖提示詞（30-80 字，絕對禁止描述商品實體）",
       "summary_zh": "繁中摘要（20-40 字）",
       "suggestedRatio": "16:9"
     }

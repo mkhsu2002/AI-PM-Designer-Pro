@@ -170,7 +170,7 @@ export const generateMarketingImage = async (
     }
 
     // 負面提示詞
-    enhancedPrompt += '\n\nAvoid: watermarks, low quality, blurry, distorted text, multiple products in frame, cluttered composition, stock photo aesthetic.';
+    enhancedPrompt += '\n\nAvoid: watermarks, low quality, blurry, distorted text, multiple products in frame, cluttered composition, stock photo aesthetic, altered product design, deformed shape, fake logo, hallucinated patterns, changing the product\'s original appearance.';
 
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
