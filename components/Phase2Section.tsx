@@ -15,6 +15,8 @@ interface Phase2SectionProps {
   onPlanUpdate: (items: ContentItem[]) => void;
   onDownloadReport: () => void;
   onImagesGenerated: (images: Map<string, string>) => void;
+  onOpenDebug?: () => void;
+  debugPromptAvailable?: boolean;
 }
 
 export const Phase2Section: React.FC<Phase2SectionProps> = ({
@@ -29,6 +31,8 @@ export const Phase2Section: React.FC<Phase2SectionProps> = ({
   onPlanUpdate,
   onDownloadReport,
   onImagesGenerated,
+  onOpenDebug,
+  debugPromptAvailable,
 }) => {
   return (
     <>
@@ -40,8 +44,16 @@ export const Phase2Section: React.FC<Phase2SectionProps> = ({
           <div className="relative z-10 flex flex-col md:flex-row gap-8">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-2xl font-bold text-white serif">Phase 2: 全套內容生成</h3>
+                <h3 className="text-2xl font-bold text-white serif flex-1">Phase 2: 全套內容生成</h3>
                 <span className="px-2 py-0.5 bg-purple-600 text-white text-[10px] font-bold uppercase rounded">PRO</span>
+                {debugPromptAvailable && (
+                  <button
+                    onClick={onOpenDebug}
+                    className="ml-2 text-xs px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors flex items-center gap-1 border border-white/5"
+                  >
+                    📝 檢視提示詞
+                  </button>
+                )}
               </div>
               <p className="text-gray-400 text-sm mb-6">
                 AI 將根據 <strong>"{activeRoute.route_name}"</strong> 策略，規劃一套包含 2 張主圖與 6 張社群長圖 (Stories) 的完整銷售漏斗素材。

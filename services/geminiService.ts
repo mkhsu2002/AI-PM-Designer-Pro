@@ -81,7 +81,9 @@ export const analyzeProductImage = async (
       });
     }, API_CONFIG.MAX_RETRIES, API_CONFIG.INITIAL_DELAY);
 
-    return parseAndValidate(response.text, validateDirectorOutput, "AI 總監分析", "AI 回應");
+    const parsed = parseAndValidate(response.text, validateDirectorOutput, "AI 總監分析", "AI 回應");
+    (parsed as any)._debugPrompt = `=== SYSTEM INSTRUCTION ===\n${DIRECTOR_SYSTEM_PROMPT}\n\n=== USER PROMPT ===\n${promptText}\n[包含產品圖片參考]`;
+    return parsed;
   });
 };
 
@@ -130,7 +132,9 @@ export const generateContentPlan = async (
       });
     }, API_CONFIG.MAX_RETRIES, API_CONFIG.INITIAL_DELAY);
 
-    return parseAndValidate(response.text, validateContentPlan, "內容企劃", "內容企劃");
+    const parsed = parseAndValidate(response.text, validateContentPlan, "內容企劃", "內容企劃");
+    (parsed as any)._debugPrompt = `=== SYSTEM INSTRUCTION ===\n${CONTENT_PLANNER_SYSTEM_PROMPT}\n\n=== USER PROMPT ===\n${promptText}`;
+    return parsed;
   });
 };
 

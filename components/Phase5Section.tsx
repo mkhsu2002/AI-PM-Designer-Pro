@@ -273,6 +273,9 @@ interface Phase5SectionProps {
   onGenerateLPImagePrompts: (selectedPromptIndex: number) => void;
   onPromptsUpdate: (prompts: LandingPageImagePrompt[]) => void;
   onDownloadPhase5Report: () => void;
+  productImages?: Map<string, string>;
+  onOpenDebug?: () => void;
+  debugPromptAvailable?: boolean;
 }
 
 export const Phase5Section: React.FC<Phase5SectionProps> = ({
@@ -284,6 +287,8 @@ export const Phase5Section: React.FC<Phase5SectionProps> = ({
   onGenerateLPImagePrompts,
   onPromptsUpdate,
   onDownloadPhase5Report,
+  onOpenDebug,
+  debugPromptAvailable,
 }) => {
   const isGenerating = appState === AppState.GENERATING_LP_IMAGES;
   const hasPrompts = landingPageImagePrompts.length > 0;
@@ -305,7 +310,17 @@ export const Phase5Section: React.FC<Phase5SectionProps> = ({
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold">5</div>
               <div>
-                <h3 className="text-xl font-bold text-white">Phase 5: Landing Page 配圖</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-white">Phase 5: Landing Page 配圖</h3>
+                  {debugPromptAvailable && (
+                    <button
+                      onClick={onOpenDebug}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors flex items-center gap-1 border border-white/5"
+                    >
+                      📝 檢視提示詞
+                    </button>
+                  )}
+                </div>
                 <p className="text-gray-400 text-sm mt-1">根據 SEO Landing Page 提示詞內容，生成 6 張 Landing Page 配圖</p>
               </div>
             </div>

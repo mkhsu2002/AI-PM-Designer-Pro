@@ -23,6 +23,7 @@ export interface MarketingRoute {
 export interface DirectorOutput {
   product_analysis: ProductAnalysis;
   marketing_routes: MarketingRoute[];
+  _debugPrompt?: string;
 }
 
 // --- PRO Version Types ---
@@ -41,6 +42,7 @@ export interface ContentPlan {
   plan_name: string;
   reference_analysis_summary?: string;
   items: ContentItem[];
+  _debugPrompt?: string;
 }
 
 // --- Phase 5: Landing Page Image Types ---
@@ -55,6 +57,7 @@ export interface LandingPageImagePrompt {
 
 export interface LandingPageImages {
   imagePrompts: LandingPageImagePrompt[];
+  _debugPrompt?: string;
 }
 
 export enum AppState {
@@ -107,6 +110,7 @@ export interface MarketAnalysis {
   marketPositioning: MarketPositioning;
   competitors: Competitor[];
   buyerPersonas: BuyerPersona[];
+  _debugPrompt?: string;
 }
 
 // --- Phase 4: Content Strategy Types ---
@@ -135,4 +139,5 @@ export interface ContentStrategy {
   ctaSuggestions: string[];
   aiStudioPrompts: string[]; // 每個內容主題對應一個 AI Studio 提示詞（React + Tailwind CSS）
   gammaPrompts: string[]; // 每個內容主題對應一個 Gamma.app 提示詞
+  _debugPrompt?: string;
 }

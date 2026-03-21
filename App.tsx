@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { analyzeProductImage, generateContentPlan, generateMarketAnalysis, generateContentStrategy, generateLandingPageImagePrompts } from './services/geminiService';
-import { DirectorOutput, AppState, ContentPlan, ContentItem, MarketAnalysis, ContentStrategy, LandingPageImagePrompt } from './types';
+import { DirectorOutput, ProductAnalysis, MarketingRoute, ContentItem, ContentPlan, MarketAnalysis, AppState, ContentStrategy, LandingPageImagePrompt, LandingPageImages } from './types';
 import { GuideModal } from './components/GuideModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { ProductCard } from './components/ProductCard';
@@ -12,6 +12,7 @@ import { Phase2Section } from './components/Phase2Section';
 import { Phase3Section } from './components/Phase3Section';
 import { Phase4Section } from './components/Phase4Section';
 import { Phase5Section } from './components/Phase5Section';
+import { DebugPromptModal } from './components/DebugPromptModal';
 import { AppError, ErrorType } from './utils/errorHandler';
 import { validateProductName, validateBrandContext, validateRefCopy } from './utils/validators';
 import { LanguageMode, getLanguageMode, setLanguageMode, isChineseMode } from './utils/languageMode';
@@ -48,9 +49,10 @@ const App: React.FC = () => {
   const [contentStrategy, setContentStrategy] = useState<ContentStrategy | null>(null);
 
   // --- Phase 5 Data ---
-  const [landingPageImagePrompts, setLandingPageImagePrompts] = useState<LandingPageImagePrompt[]>([]);
+  const [landingPageImages, setLandingPageImages] = useState<LandingPageImages | null>(null);
 
   // --- UI State ---
+  const [debugModalPhase, setDebugModalPhase] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [errorType, setErrorType] = useState<ErrorType | null>(null);
   const [inputErrors, setInputErrors] = useState<{ productName?: string; brandContext?: string; refCopy?: string }>({});
@@ -245,7 +247,7 @@ const App: React.FC = () => {
     try {
       const selectedRoute = analysisResult.marketing_routes[activeRouteIndex];
       const result = await generateLandingPageImagePrompts(contentStrategy, productName, selectedRoute, selectedPromptIndex);
-      setLandingPageImagePrompts(result.imagePrompts);
+      setLandingPageImages(result);
       setAppState(AppState.LP_IMAGES_READY);
     } catch (e) {
       handleError(e, "Landing Page 配圖提示詞生成失敗，請稍候再試。", AppState.CONTENT_READY);
@@ -288,8 +290,8 @@ const App: React.FC = () => {
   };
 
   const handleDownloadPhase5Report = () => {
-    if (landingPageImagePrompts.length === 0) return;
-    const textReport = generatePhase5Report(landingPageImagePrompts, productName);
+    if (!landingPageImages?.imagePrompts || landingPageImages.imagePrompts.length === 0) return;
+    const textReport = generatePhase5Report(landingPageImages.imagePrompts, productName);
     downloadTextFile(textReport, `Phase5_LandingPage配圖提示詞_${productName.replace(/\s+/g, '_')}.txt`);
   };
 
@@ -332,7 +334,20 @@ const App: React.FC = () => {
         {/* Route Selection */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-            <h3 className="text-xl font-bold text-white serif">Phase 1: 視覺策略選擇</h3>
+            <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">1</div>
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400 flex-1">
+                  Phase 1: 視覺策略選擇 / Select Concept
+                </h2>
+                {analysisResult?._debugPrompt && (
+                  <button
+                    onClick={() => setDebugModalPhase(1)}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors flex items-center gap-1 border border-white/5"
+                  >
+                    📝 檢視提示詞
+                  </button>
+                )}
+              </div>
             <button
               onClick={handleDownloadPhase1Report}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
@@ -388,43 +403,52 @@ const App: React.FC = () => {
           onPlanUpdate={(newItems) => setEditedPlanItems(newItems)}
           onDownloadReport={handleDownloadReport}
           onImagesGenerated={(images) => setPhase2GeneratedImages(images)}
+          onOpenDebug={() => setDebugModalPhase(2)}
+          debugPromptAvailable={!!contentPlan?._debugPrompt}
         />
 
         {/* Phase 3 */}
         {isPhase3Visible && (
           <Phase3Section
-            appState={appState}
-            marketAnalysis={marketAnalysis}
-            productName={productName}
-            region={marketRegion}
-            onRegionChange={setMarketRegion}
-            onGenerateMarketAnalysis={handleGenerateMarketAnalysis}
-            onDownloadPhase3Report={handleDownloadPhase3Report}
+          appState={appState}
+          marketAnalysis={marketAnalysis}
+          onGenerateMarketAnalysis={handleGenerateMarketAnalysis}
+          onOpenDebug={() => setDebugModalPhase(3)}
+          debugPromptAvailable={!!marketAnalysis?._debugPrompt}
+          productName={productName}
+          region={marketRegion}
+          onRegionChange={setMarketRegion}
+          onDownloadPhase3Report={handleDownloadPhase3Report}
           />
         )}
 
         {/* Phase 4 */}
         {isPhase4Visible && (
           <Phase4Section
-            appState={appState}
-            contentStrategy={contentStrategy}
-            productName={productName}
-            onGenerateContentStrategy={handleGenerateContentStrategy}
-            onDownloadPhase4Report={handleDownloadPhase4Report}
+          appState={appState}
+          contentStrategy={contentStrategy}
+          onGenerateContentStrategy={handleGenerateContentStrategy}
+          onOpenDebug={() => setDebugModalPhase(4)}
+          debugPromptAvailable={!!contentStrategy?._debugPrompt}
+          productName={productName}
+          onDownloadPhase4Report={handleDownloadPhase4Report}
           />
         )}
 
         {/* Phase 5 */}
         {isPhase5Visible && (
           <Phase5Section
-            appState={appState}
-            landingPageImagePrompts={landingPageImagePrompts}
-            productName={productName}
-            defaultRefImage={imagePreview || undefined}
-            contentTopics={contentStrategy?.contentTopics || []}
-            onGenerateLPImagePrompts={handleGenerateLPImagePrompts}
-            onPromptsUpdate={setLandingPageImagePrompts}
-            onDownloadPhase5Report={handleDownloadPhase5Report}
+          appState={appState}
+          contentTopics={contentStrategy?.contentTopics || []}
+          landingPageImagePrompts={landingPageImages?.imagePrompts || []}
+          onGenerateLPImagePrompts={handleGenerateLPImagePrompts}
+          productImages={phase2GeneratedImages}
+          onOpenDebug={() => setDebugModalPhase(5)}
+          debugPromptAvailable={!!landingPageImages?._debugPrompt}
+          productName={productName}
+          defaultRefImage={imagePreview || undefined}
+          onPromptsUpdate={(prompts) => setLandingPageImages(prev => prev ? { ...prev, imagePrompts: prompts } : prev)}
+          onDownloadPhase5Report={handleDownloadPhase5Report}
           />
         )}
       </div>
@@ -525,13 +549,26 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Phase Results */}
         {isPhaseResultsVisible && renderPhase1Results()}
       </main>
 
       <footer className="w-full py-6 text-center border-t border-white/5 text-xs text-gray-600">
         © 2026 <a href="https://flypigai.icareu.tw/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors font-bold">FlyPig AI - 艾可開發股份有限公司</a>. All rights reserved.
       </footer>
+
+      <DebugPromptModal 
+        isOpen={debugModalPhase !== null}
+        promptContent={
+          debugModalPhase === 1 ? analysisResult?._debugPrompt || null :
+          debugModalPhase === 2 ? contentPlan?._debugPrompt || null :
+          debugModalPhase === 3 ? marketAnalysis?._debugPrompt || null :
+          debugModalPhase === 4 ? contentStrategy?._debugPrompt || null :
+          debugModalPhase === 5 ? landingPageImages?._debugPrompt || null :
+          null
+        }
+        phaseName={`Phase ${debugModalPhase}`}
+        onClose={() => setDebugModalPhase(null)}
+      />
     </div>
   );
 };

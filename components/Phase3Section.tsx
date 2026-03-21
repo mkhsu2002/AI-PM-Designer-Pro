@@ -11,6 +11,8 @@ interface Phase3SectionProps {
   onRegionChange: (region: string) => void;
   onGenerateMarketAnalysis: () => void;
   onDownloadPhase3Report: () => void;
+  onOpenDebug?: () => void;
+  debugPromptAvailable?: boolean;
 }
 
 export const Phase3Section: React.FC<Phase3SectionProps> = ({
@@ -21,6 +23,8 @@ export const Phase3Section: React.FC<Phase3SectionProps> = ({
   onRegionChange,
   onGenerateMarketAnalysis,
   onDownloadPhase3Report,
+  onOpenDebug,
+  debugPromptAvailable,
 }) => {
   const regions = ["台灣", "亞洲", "北美", "全球"];
   const isCustomRegion = !regions.includes(region) && region !== "";
@@ -34,7 +38,15 @@ export const Phase3Section: React.FC<Phase3SectionProps> = ({
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">3</div>
-            <h3 className="text-xl font-bold text-white">Phase 3: 產品市場分析</h3>
+            <h3 className="text-xl font-bold text-white flex-1">Phase 3: 產品市場分析</h3>
+            {debugPromptAvailable && (
+              <button
+                onClick={onOpenDebug}
+                className="text-xs px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors flex items-center gap-1 border border-white/5"
+              >
+                📝 檢視提示詞
+              </button>
+            )}
           </div>
           <p className="text-gray-400 mb-2">根據第一及第二階段產生的產品相關資訊，生成完整的市場分析報告</p>
           
