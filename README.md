@@ -1,4 +1,4 @@
-# AI Product Marketing Designer PRO v1.2
+# AI Product Marketing Designer PRO v1.6
 
 **AI Product Marketing Designer PRO** 是一個專為行銷人員與產品經理打造的智慧化視覺生產力工具。
 
@@ -12,7 +12,7 @@
 
 ---
 
-## 🚀 PRO v1.2 核心功能
+## 🚀 PRO v1.6 核心功能
 
 ### 1. 深度感知輸入 (Context-Aware Input)
 *   **產品視覺分析**: 自動識別產品材質、光影與設計語言。
