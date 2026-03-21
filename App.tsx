@@ -442,7 +442,7 @@ const App: React.FC = () => {
         {appState === AppState.IDLE && (
           <div className="flex-1 flex flex-col items-center mt-8 text-center">
             <div className="inline-block px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-widest mb-6">
-              v1.02
+              v1.2
             </div>
             <h2 className="text-4xl md:text-6xl font-bold text-white serif mb-4 leading-tight">
               打造完整的<br />品牌視覺資產
