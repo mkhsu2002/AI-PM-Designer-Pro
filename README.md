@@ -1,4 +1,4 @@
-# AI Product Marketing Designer PRO v1.6
+# AI Product Marketing Designer PRO v0.8
 
 **AI Product Marketing Designer PRO** 是一個專為行銷人員與產品經理打造的智慧化視覺生產力工具。
 
@@ -12,7 +12,7 @@
 
 ---
 
-## 🚀 PRO v1.6 核心功能
+## 🚀 PRO v0.8 核心功能
 
 ### 1. 深度感知輸入 (Context-Aware Input)
 *   **產品視覺分析**: 自動識別產品材質、光影與設計語言。
@@ -42,7 +42,7 @@
     *   **視覺一致性**: 8 張圖統一色彩方案、字體系統、設計元素、品牌識別。
 
 ### 4. 專業工作流：審閱與製作 (Review & Production Workflow)
-v1.2 引入了專業的廣告製作流程：
+v0.8 採用專業的廣告製作流程：
 *   **腳本審閱模式 (Script Review)**: 在生成圖片前，您可以完全掌控並編輯每一張圖的文案 (Copy) 與 AI 繪圖提示詞 (Prompt)。
 *   **精細化控圖 (Reference Control)**: 支援為企劃中的**每一張圖**單獨上傳參考圖片 (例如：最後一張 CTA 圖需要放上特定的 Logo，或第一張圖需要參考特定配色)。
 *   **一鍵量產**: 確認無誤後，切換至製作模式即可快速生成高品質素材。
@@ -63,6 +63,9 @@ v1.2 引入了專業的廣告製作流程：
     *   **AI Studio 版本**: 生成 React + Tailwind CSS 網頁指令（500-800 字）。
     *   **Gamma.app 版本**: 生成簡報/網頁結構指令（400-600 字）。
 *   **圖片自動引用**: 如果 Phase 2 已生成圖片，提示詞會自動引用對應的圖片檔名。*   **一鍵複製與開啟**: 複製提示詞後自動開啟對應的生成平台
+
+### 7. Phase 5: Ultra 版本體驗
+*   **本版不內建 Landing Page 配圖生成**: 如需進階 Phase 5 功能，請前往 [Ultra 版本](https://ultra.icareu.tw/) 體驗使用。
 
 ## 🔑 API 調用管理
 
@@ -127,7 +130,8 @@ v1.2 引入了專業的廣告製作流程：
 
 ## 🛠 技術棧 (Tech Stack)
 
-*   **Frontend**: React 18, TypeScript, Tailwind CSS
+*   **Frontend**: React 18, TypeScript, Tailwind CSS（透過 CDN 載入）
+*   **Tailwind 載入方式**: 於 [index.html](./index.html) 直接使用 `<script src="https://cdn.tailwindcss.com"></script>`，非獨立 Tailwind build pipeline
 *   **AI Models**:
     *   **Gemini 2.5 Flash**: 負責多模態視覺分析、品牌語意理解、行銷策略規劃 (Thinking Budget Enabled)。
     *   **Gemini 3 Pro Image Preview**: 負責執行高解析度的廣告圖像生成 (支援 1:1、3:4、4:3、9:16、16:9 構圖)。

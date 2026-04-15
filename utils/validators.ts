@@ -2,7 +2,7 @@
  * 使用 Zod 進行執行時型別驗證
  */
 import { z } from 'zod';
-import { ProductAnalysis, MarketingRoute, DirectorOutput, ContentItem, ContentPlan, MarketAnalysis, ContentStrategy, LandingPageImagePrompt, LandingPageImages } from '../types';
+import { ProductAnalysis, MarketingRoute, DirectorOutput, ContentItem, ContentPlan, MarketAnalysis, ContentStrategy } from '../types';
 import { AppError, ErrorType } from './errorHandler';
 
 // ProductAnalysis Schema - 使用更寬鬆的驗證
@@ -390,81 +390,6 @@ export const validateContentStrategy = (data: unknown): ContentStrategy => {
     type: ErrorType.VALIDATION,
     message: `內容策略格式驗證失敗：\n${errors}`,
     userMessage: "內容策略格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
-    originalError: result.error,
-  });
-};
-
-// --- Phase 5: Landing Page Image Schemas ---
-
-const LandingPageImagePromptSchema = z.object({
-  id: z.string().min(1).max(50),
-  purpose: z.string().min(2).max(50),
-  prompt_en: z.string().min(20).max(1000),
-  summary_zh: z.string().min(5).max(200),
-  suggestedRatio: z.enum(['16:9', '1:1', '3:4', '4:3']),
-});
-
-const LandingPageImagesSchema = z.object({
-  imagePrompts: z.array(LandingPageImagePromptSchema).min(4).max(8),
-});
-
-/**
- * 驗證並解析 LandingPageImages
- */
-export const validateLandingPageImages = (data: unknown): LandingPageImages => {
-  const result = LandingPageImagesSchema.safeParse(data);
-  
-  if (result.success) {
-    return result.data;
-  }
-  
-  // 嘗試修復常見問題
-  if (typeof data === 'object' && data !== null) {
-    const fixed = { ...data } as Record<string, unknown>;
-    
-    // 確保 imagePrompts 是陣列
-    if (!Array.isArray(fixed.imagePrompts)) fixed.imagePrompts = [];
-    
-    // 修復每個 prompt 的常見問題
-    if (Array.isArray(fixed.imagePrompts)) {
-      fixed.imagePrompts = fixed.imagePrompts.map((item: unknown, index: number) => {
-        if (typeof item === 'object' && item !== null) {
-          const itemObj = item as Record<string, unknown>;
-          
-          // 確保 id 存在
-          if (!itemObj.id || typeof itemObj.id !== 'string') {
-            const ids = ['lp_img_1_hero', 'lp_img_2_feature', 'lp_img_3_lifestyle', 'lp_img_4_detail', 'lp_img_5_trust', 'lp_img_6_cta'];
-            itemObj.id = ids[index] || `lp_img_${index + 1}`;
-          }
-          
-          // 確保 purpose 存在
-          if (!itemObj.purpose || typeof itemObj.purpose !== 'string') {
-            itemObj.purpose = `Landing Page 圖片 ${index + 1}`;
-          }
-          
-          // 確保 suggestedRatio 存在
-          if (!itemObj.suggestedRatio || !['16:9', '1:1', '3:4', '4:3'].includes(itemObj.suggestedRatio as string)) {
-            itemObj.suggestedRatio = index === 0 || index === 5 ? '16:9' : '1:1';
-          }
-          
-          return itemObj;
-        }
-        return item;
-      });
-    }
-    
-    const retryResult = LandingPageImagesSchema.safeParse(fixed);
-    if (retryResult.success) {
-      console.warn('Landing Page 圖片提示詞驗證失敗後成功修復資料格式');
-      return retryResult.data;
-    }
-  }
-  
-  const errors = result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join('\n');
-  throw new AppError({
-    type: ErrorType.VALIDATION,
-    message: `Landing Page 圖片提示詞格式驗證失敗：\n${errors}`,
-    userMessage: "Landing Page 圖片提示詞格式不正確，請再試一次。如問題持續發生，請聯繫技術支援。",
     originalError: result.error,
   });
 };

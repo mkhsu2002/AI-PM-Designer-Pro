@@ -29,7 +29,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
         <div className="p-8">
             <div className="flex items-center space-x-4">
               <div className="h-10 w-1 bg-white/30 rounded-full" />
-              <h2 className="text-3xl font-bold serif text-white">功能導覽 v1.6</h2>
+              <h2 className="text-3xl font-bold serif text-white">功能導覽 v0.8</h2>
             </div>
           <p className="text-gray-400 text-sm mb-8">從單圖分析到全套社群行銷素材的完整生產線。</p>
 
@@ -118,16 +118,20 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-600/20 text-orange-400 flex items-center justify-center font-bold text-lg border border-orange-600/30">7</div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Phase 5: Landing Page 配圖</h3>
-                <p className="text-gray-400 text-sm leading-relaxed mb-2">
-                  基於 Phase 4 的 SEO Landing Page 提示詞，自動規劃 6 張 Landing Page 配圖：
+                <h3 className="text-lg font-bold text-white mb-1">Phase 5: Ultra 版本體驗</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  本版本不再提供 Landing Page 配圖生成功能。若需使用進階體驗，請前往
+                  {' '}
+                  <a
+                    href="https://ultra.icareu.tw/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-orange-400 hover:text-orange-300 underline"
+                  >
+                    Ultra 版本
+                  </a>
+                  。
                 </p>
-                <ul className="list-disc list-inside text-xs text-gray-500 space-y-1 ml-1">
-                    <li><strong>6 張配圖提示詞</strong>：Hero 主視覺、產品特色、使用情境、技術細節、信任背書、CTA</li>
-                    <li><strong>檢閱與編輯</strong>：AI 生成提示詞後可自由編輯</li>
-                    <li><strong>參考圖上傳</strong>：每張圖支援單獨上傳參考圖片</li>
-                    <li><strong>手動生成</strong>：確認後逐張生成高品質圖片</li>
-                </ul>
               </div>
             </div>
           </div>
@@ -137,7 +141,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="w-full sm:w-auto px-8 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center space-x-2"
             >
-              <span>開始體驗 v1.6</span>
+              <span>開始體驗 v0.8</span>
             </button>
           </div>
         </div>

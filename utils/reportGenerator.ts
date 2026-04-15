@@ -3,7 +3,7 @@
  * 為各個 Phase 生成可下載的文字報告
  */
 
-import { DirectorOutput, MarketAnalysis, ContentStrategy, MarketingRoute, ProductAnalysis, LandingPageImagePrompt } from '../types';
+import { DirectorOutput, MarketAnalysis, ContentStrategy } from '../types';
 
 /**
  * 生成 Phase 1 報告
@@ -15,7 +15,7 @@ export const generatePhase1Report = (
   const route = analysis.marketing_routes[selectedRouteIndex];
   const date = new Date().toLocaleDateString('zh-TW');
 
-  let report = `AI Product Marketing Designer PRO v1.6 - Phase 1 視覺策略報告\n`;
+  let report = `AI Product Marketing Designer PRO v0.8 - Phase 1 視覺策略報告\n`;
   report += `生成日期: ${date}\n`;
   report += `=================================================\n\n`;
 
@@ -55,7 +55,7 @@ export const generatePhase3Report = (
 ): string => {
   const date = new Date().toLocaleDateString('zh-TW');
 
-  let report = `AI Product Marketing Designer PRO v1.6 - Phase 3 市場分析報告\n`;
+  let report = `AI Product Marketing Designer PRO v0.8 - Phase 3 市場分析報告\n`;
   report += `產品名稱: ${productName}\n`;
   report += `生成日期: ${date}\n`;
   report += `=================================================\n\n`;
@@ -125,7 +125,7 @@ export const generatePhase4Report = (
 ): string => {
   const date = new Date().toLocaleDateString('zh-TW');
 
-  let report = `AI Product Marketing Designer PRO v1.6 - Phase 4 內容策略報告\n`;
+  let report = `AI Product Marketing Designer PRO v0.8 - Phase 4 內容策略報告\n`;
   report += `產品名稱: ${productName}\n`;
   report += `生成日期: ${date}\n`;
   report += `=================================================\n\n`;
@@ -155,33 +155,6 @@ export const generatePhase4Report = (
   report += `[行動呼籲文案建議]\n\n`;
   contentStrategy.ctaSuggestions.forEach((cta, idx) => {
     report += `${idx + 1}. ${cta}\n`;
-  });
-
-  return report;
-};
-
-/**
- * 生成 Phase 5 報告
- */
-export const generatePhase5Report = (
-  imagePrompts: LandingPageImagePrompt[],
-  productName: string
-): string => {
-  const date = new Date().toLocaleDateString('zh-TW');
-
-  let report = `AI Product Marketing Designer PRO v1.6 - Phase 5 Landing Page 配圖提示詞報告\n`;
-  report += `產品名稱: ${productName}\n`;
-  report += `生成日期: ${date}\n`;
-  report += `=================================================\n\n`;
-
-  report += `[Landing Page 配圖規劃 - 共 ${imagePrompts.length} 張]\n\n`;
-  imagePrompts.forEach((prompt, idx) => {
-    report += `--- 圖片 ${idx + 1}: ${prompt.purpose} ---\n`;
-    report += `ID: ${prompt.id}\n`;
-    report += `建議比例: ${prompt.suggestedRatio}\n`;
-    report += `繁中摘要: ${prompt.summary_zh}\n`;
-    report += `生成提示詞:\n${prompt.prompt_en}\n`;
-    report += `\n`;
   });
 
   return report;
